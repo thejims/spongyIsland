@@ -418,6 +418,16 @@ public class SpongyIsland {
                 .executor(service)
                 .build();
         Sponge.getCommandManager().register(this, confirmationCommand, "isconfirm");
+
+        //Island freind add
+        //add friend
+        CommandSpec addFriend =  CommandSpec.builder()
+                .description(Text.of("Removes or add Friend based on there status"))
+                .arguments(GenericArguments.user(Text.of("Friend")))
+                .executor(new IsFriend())
+                .build();
+        this.game.getCommandManager().register(this, addFriend, "Friend", "Addfriend","Removefriend");
+
     }
 
 

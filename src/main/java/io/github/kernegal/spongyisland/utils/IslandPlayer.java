@@ -27,7 +27,10 @@ package io.github.kernegal.spongyisland.utils;
 
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
+import org.spongepowered.api.entity.living.player.Player;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -39,6 +42,7 @@ public class IslandPlayer {
     private Vector3i isHome;
     private int island;
     private long newIslandTime,newLevelTime;
+    private static List<String> friends = new ArrayList();
 
     public IslandPlayer(int id, UUID uuid, String name, Vector2i isPosition, Vector3i isHome, int island) {
         this.id = id;
@@ -58,6 +62,44 @@ public class IslandPlayer {
         this.isHome = null;
     }
 
+    public static void addFriend(String name) {
+
+
+    friends.add(name);
+
+
+
+    }
+    public static void renFriend(String name) {
+
+
+        friends.remove(name);
+
+
+
+    }
+
+
+    public static boolean ifFriend(Player player) {
+
+        if (friends.contains(player.getName()))
+        {
+            return true;
+
+        }
+        return false;
+
+    }
+    public static boolean ifFriend(String player) {
+
+        if (friends.contains(player))
+        {
+            return true;
+
+        }
+        return false;
+
+    }
 
     public int getId() {
         return id;
