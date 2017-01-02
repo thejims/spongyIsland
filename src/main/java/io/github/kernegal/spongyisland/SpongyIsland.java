@@ -42,12 +42,16 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
+import org.spongepowered.api.world.WorldArchetype;
+import org.spongepowered.api.world.WorldArchetypes;
+import org.spongepowered.api.world.storage.WorldProperties;
 
 import java.io.*;
 
@@ -121,7 +125,19 @@ public class SpongyIsland {
             economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
         }
     }
+    @Listener
+    public void onGameStartingServerEvent(GameStartingServerEvent event) {
+        createAndLoadWorld("skyworld", WorldArchetypes.THE_VOID);
+    }
 
+    private void createAndLoadWorld(String folderName, WorldArchetype settings) {
+        try {
+            final WorldProperties properties = Sponge.getServer().createWorldProperties(folderName, settings);
+            Sponge.getServer().loadWorld(properties);
+        } catch (IOException ex) {
+            this.logger.error("Failed to create world data for [" + folderName + "]!", ex);
+        }
+    }
     @Listener
     public void onPreInitialization(GamePreInitializationEvent event) {
 

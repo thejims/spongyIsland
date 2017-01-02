@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c127cf0c-5eb9-4938-81d9-e0a31d8565b2" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/commands/IsFriend.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/SpongyIsland.iml" afterPath="$PROJECT_DIR$/SpongyIsland.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/IslandProtection.java" afterPath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/IslandProtection.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java" afterPath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/utils/IslandPlayer.java" afterPath="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/utils/IslandPlayer.java" />
     </list>
     <ignored path="spongyisland.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -27,11 +23,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="IsFriend.java" pinned="false" current-in-tab="true">
+      <file leaf-file-name="IsFriend.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/commands/IsFriend.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="839">
-              <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
+            <state relative-caret-position="652">
+              <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#1371#1377#0" expanded="true" />
@@ -53,11 +49,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="SpongyIsland.java" pinned="false" current-in-tab="false">
+      <file leaf-file-name="SpongyIsland.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="740">
-              <caret line="429" column="0" selection-start-line="429" selection-start-column="0" selection-end-line="429" selection-end-column="0" />
+            <state relative-caret-position="561">
+              <caret line="140" column="13" selection-start-line="140" selection-start-column="13" selection-end-line="140" selection-end-column="13" />
               <folding />
             </state>
           </provider>
@@ -91,8 +87,8 @@
       <list>
         <option value="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/IslandProtection.java" />
         <option value="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/utils/IslandPlayer.java" />
-        <option value="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java" />
         <option value="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/commands/IsFriend.java" />
+        <option value="$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java" />
       </list>
     </option>
   </component>
@@ -576,7 +572,9 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="XDebuggerManager">
-    <breakpoint-manager />
+    <breakpoint-manager>
+      <option name="time" value="1" />
+    </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="antWorkspaceConfiguration">
@@ -643,22 +641,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="740">
-          <caret line="429" column="0" selection-start-line="429" selection-start-column="0" selection-end-line="429" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/commands/IsFriend.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="839">
-          <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
+        <state relative-caret-position="652">
+          <caret line="40" column="0" selection-start-line="40" selection-start-column="0" selection-end-line="40" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#1371#1377#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/io/github/kernegal/spongyisland/SpongyIsland.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="561">
+          <caret line="140" column="13" selection-start-line="140" selection-start-column="13" selection-end-line="140" selection-end-column="13" />
+          <folding />
         </state>
       </provider>
     </entry>
