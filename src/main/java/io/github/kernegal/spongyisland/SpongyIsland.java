@@ -101,6 +101,8 @@ public class SpongyIsland {
     private CommentedConfigurationNode valuesConfigNode;
     private CommentedConfigurationNode biomeShopConfigNode;
     private CommentedConfigurationNode islandCommandConfigNode;
+    private CommentedConfigurationNode friendsListNode;
+    private ConfigurationLoader<CommentedConfigurationNode> friendsListLoader;
 
     public File getConfigPath() { return this.configDir; }
     public File getSchematicsFolder() { return schematicsFolder; }
@@ -206,6 +208,11 @@ public class SpongyIsland {
         File islandCommandConfig = new File(configDir, "islandCommand.conf");
         ConfigurationLoader<CommentedConfigurationNode> islandCommandConfigManager =
                 HoconConfigurationLoader.builder().setFile(islandCommandConfig).build();
+
+        File friendsListFile = new File(configDir, "friendsList.conf");
+        friendsListLoader =
+                HoconConfigurationLoader.builder().setFile(friendsListFile).build();
+
         try {
             if(!globalConfig.exists()){
                 globalConfigNode = HoconConfigurationLoader.builder().setURL(this.getClass().getResource("defaultConfigs/config.conf")).build().load();
@@ -265,6 +272,14 @@ public class SpongyIsland {
 
             }
 
+            if(!friendsListFile.exists()) {
+                friendsListNode = HoconConfigurationLoader.builder().build().load();
+                friendsListLoader.save(friendsListNode);
+            }
+            else{
+                friendsListNode = friendsListLoader.load();
+
+            }
         } catch(IOException e) {
             getLogger().error(e.toString());
         }
@@ -440,9 +455,9 @@ public class SpongyIsland {
         CommandSpec addFriend =  CommandSpec.builder()
                 .description(Text.of("Removes or add Friend based on there status"))
                 .arguments(GenericArguments.user(Text.of("Friend")))
-                .executor(new IsFriend())
+                .executor(new IsFriend(data))
                 .build();
-        this.game.getCommandManager().register(this, addFriend, "Friend", "Addfriend","Removefriend");
+        this.game.getCommandManager().register(this, addFriend, "isfriend", "isf");
 
     }
 

@@ -30,6 +30,7 @@ import com.flowpowered.math.vector.Vector3i;
 import org.spongepowered.api.entity.living.player.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,15 +43,16 @@ public class IslandPlayer {
     private Vector3i isHome;
     private int island;
     private long newIslandTime,newLevelTime;
-    private static List<String> friends = new ArrayList();
+    private List<UUID> isFriends;
 
-    public IslandPlayer(int id, UUID uuid, String name, Vector2i isPosition, Vector3i isHome, int island) {
+    public IslandPlayer(int id, UUID uuid, String name, Vector2i isPosition, Vector3i isHome, List<UUID> isFriends, int island) {
         this.id = id;
         this.uuid = uuid;
         this.name = name;
         this.isPosition = isPosition;
         this.isHome = isHome;
         this.island = island;
+        this.isFriends = isFriends;
     }
 
     public IslandPlayer(int id, UUID uuid, String name) {
@@ -60,44 +62,28 @@ public class IslandPlayer {
         this.isPosition = null;
         this.island = -1;
         this.isHome = null;
-    }
-
-    public static void addFriend(String name) {
-
-
-    friends.add(name);
-
-
-
-    }
-    public static void renFriend(String name) {
-
-
-        friends.remove(name);
-
-
+        this.isFriends = null;
 
     }
 
-
-    public static boolean ifFriend(Player player) {
-
-        if (friends.contains(player.getName()))
-        {
-            return true;
-
-        }
-        return false;
+    public void addFriend(UUID u) {
+        if (isFriends == null)
+            isFriends = new ArrayList<UUID>();
+        isFriends.add(u);
 
     }
-    public static boolean ifFriend(String player) {
+    public void removeFriend(UUID u) {
+        if (isFriends == null) return;
+        isFriends.remove(u);
 
-        if (friends.contains(player))
-        {
-            return true;
+    }
 
-        }
-        return false;
+    public boolean ifFriend(Player player) {
+        return isFriends != null && isFriends.contains(player.getUniqueId());
+
+    }
+    public boolean ifFriend(UUID player) {
+        return isFriends != null && isFriends.contains(player);
 
     }
 
@@ -116,6 +102,8 @@ public class IslandPlayer {
     public Vector3i getIsHome() {
         return isHome;
     }
+
+    public List<UUID> getFriends() { return isFriends; }
 
     public int getIsland() {
         return island;

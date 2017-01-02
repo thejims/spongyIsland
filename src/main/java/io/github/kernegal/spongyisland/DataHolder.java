@@ -74,6 +74,7 @@ import java.io.StringWriter;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static javax.xml.bind.JAXBIntrospector.getValue;
 
@@ -126,6 +127,7 @@ public class DataHolder {
                             "   is_home_y  INT,\n" +
                             "   is_home_z  INT,\n" +
                             "   lt_create  SMALLDATETIME,\n" +
+                            "   friends VARCHAR,\n" +
                             "   island INT            DEFAULT '-1',       \n" +
                             "   PRIMARY KEY (id)\n" +
                             ");").execute();
@@ -170,6 +172,7 @@ public class DataHolder {
                             rs.getString("name"),
                             new Vector2i(rs.getInt("position_x"),rs.getInt("position_y")),
                             new Vector3i(rs.getInt("is_home_x"),rs.getInt("is_home_y"),rs.getInt("is_home_z")),
+                            Arrays.stream(rs.getString("friends").substring(1,-1).split(",")).map(UUID::fromString).collect(Collectors.toList()),
                             rs.getInt("island")
                     );
 
@@ -333,7 +336,27 @@ public class DataHolder {
             player.sendMessage(Text.of(TextColors.DARK_RED,"Island not secure"));
 
     }
-
+    public void addFriend(UUID player, UUID friend) {
+        players.get(player).addFriend(friend);
+        updateFriendsDB(player);
+    }
+    public void removeFriend(UUID player, UUID friend) {
+        players.get(player).removeFriend(friend);
+        updateFriendsDB(player);
+    }
+    private void updateFriendsDB(UUID player) {
+        try (Connection conn = getDataSource().getConnection()) {
+            try {
+                conn.prepareStatement("UPDATE player\n" +
+                        "        SET friends='" + players.get(player).getFriends() + "'\n" +
+                        "        WHERE uuid='" + player + "';").execute();
+            } finally {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            SpongyIsland.getPlugin().getLogger().error(e.toString());
+        }
+    }
     public final IslandPlayer getPlayerData(UUID uuid){
         return players.get(uuid);
 
