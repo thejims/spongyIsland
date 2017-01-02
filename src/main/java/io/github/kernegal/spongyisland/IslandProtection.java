@@ -27,7 +27,6 @@ package io.github.kernegal.spongyisland;
 
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
-import io.github.kernegal.spongyisland.utils.Island;
 import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
@@ -40,7 +39,6 @@ import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.IsCancelled;
 import org.spongepowered.api.event.filter.cause.First;
-import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.filter.type.Exclude;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -75,61 +73,58 @@ public class IslandProtection {
             return;
         }
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-
-        if (playerData.getIsland() != -1 || (playerData.ifFriend(player))) {
-
-            for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
-                trans.getOriginal().getLocation().ifPresent(location -> {
-                    Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
-                    Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
-                    Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
-                    if (location.getX() < min.getX() || location.getX() >= max.getX() ||
-                        location.getZ() < min.getY() || location.getZ() >= max.getY()) {
-                        trans.setValid(false);
-                        //event.setCancelled(true);
-                    }
-
-                });
-
-
-
-            }
-        } else {
+        IslandPlayer islandOwner = data.nearestIsland(playerData.getIsPosition());
+        if (islandOwner.isFriend(player.getUniqueId())) {
             event.setCancelled(true);
+            return;
         }
+
+        Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
+        Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
+        Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
+        for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
+            trans.getOriginal().getLocation().ifPresent(location -> {
+                if ((location.getX() < min.getX() || location.getX() >= max.getX() ||
+                        location.getZ() < min.getY() || location.getZ() >= max.getY()) &&
+                        islandOwner.isFriend(player.getUniqueId())) {
+                    trans.setValid(false);
+                    //event.setCancelled(true);
+                }
+            });
+        }
+
+
     }
 
     @Listener
     @IsCancelled(Tristate.FALSE)
     public void blockBreakEvent(ChangeBlockEvent.Break event, @First Player player) {
-        if(player.hasPermission(SpongyIsland.pluginId+".islands.modify_blocks")){
+        if(player.hasPermission(SpongyIsland.pluginId+".islands.modify_blocks"))
             return;
-        }
-        if(!event.getTargetWorld().getName().equals("world")){
+
+        if(!event.getTargetWorld().getName().equals("world"))
             return;
-        }
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        if (playerData.getIsland() != -1 || (playerData.ifFriend(player))) {
-
-            for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
-                trans.getOriginal().getLocation().ifPresent(location -> {
-                    Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
-                    Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
-                    Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
-                    if (location.getX() < min.getX() || location.getX() >= max.getX() ||
-                            location.getZ() < min.getY() || location.getZ() >= max.getY()) {
-                        trans.setValid(false);
-                        //event.setCancelled(true);
-                    }
-
-                });
-
-
-
-            }
-        } else {
+        IslandPlayer islandOwner = data.nearestIsland(playerData.getIsPosition());
+        if (islandOwner.isFriend(player.getUniqueId())) {
             event.setCancelled(true);
+            return;
         }
+        for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
+            trans.getOriginal().getLocation().ifPresent(location -> {
+                Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
+                Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
+                Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
+                if (location.getX() < min.getX() || location.getX() >= max.getX() ||
+                        location.getZ() < min.getY() || location.getZ() >= max.getY()) {
+                    trans.setValid(false);
+                    //event.setCancelled(true);
+                }
+
+            });
+
+        }
+
     }
 
     @Listener
@@ -143,19 +138,17 @@ public class IslandProtection {
             return;
         }
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        if (playerData.getIsland() != -1 || (playerData.ifFriend(player))) {
-
-            Vector3i location =  event.getTargetBlock().getPosition().toInt();
-            Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
-            Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
-            Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
-            if (location.getX() < min.getX() || location.getX() >= max.getX() ||
-                    location.getZ() < min.getY() || location.getZ() >= max.getY()) {
-                event.setCancelled(true);
-            }
-
-
-        } else {
+        IslandPlayer islandOwner = data.nearestIsland(playerData.getIsPosition());
+        if (islandOwner.isFriend(player.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
+        Vector3i location =  event.getTargetBlock().getPosition().toInt();
+        Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
+        Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
+        Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
+        if (location.getX() < min.getX() || location.getX() >= max.getX() ||
+                location.getZ() < min.getY() || location.getZ() >= max.getY()) {
             event.setCancelled(true);
         }
     }
@@ -216,3 +209,5 @@ public class IslandProtection {
     }
 
 }
+
+

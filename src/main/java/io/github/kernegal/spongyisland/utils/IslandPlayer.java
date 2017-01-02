@@ -30,7 +30,6 @@ import com.flowpowered.math.vector.Vector3i;
 import org.spongepowered.api.entity.living.player.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,12 +77,12 @@ public class IslandPlayer {
 
     }
 
-    public boolean ifFriend(Player player) {
-        return isFriends != null && isFriends.contains(player.getUniqueId());
+    public boolean isFriend(Player player) {
+        return isFriends != null && (player.getUniqueId().equals(uuid) || isFriends.contains(player.getUniqueId()));
 
     }
-    public boolean ifFriend(UUID player) {
-        return isFriends != null && isFriends.contains(player);
+    public boolean isFriend(UUID player) {
+        return isFriends != null && (player.equals(uuid) || isFriends.contains(player));
 
     }
 

@@ -248,6 +248,31 @@ public class DataHolder {
 
     }
 
+    public IslandPlayer nearestIsland(Vector2i location) {
+
+        int nearestIslandCreatorId=-1;
+        try (Connection conn = getDataSource().getConnection()) {
+            ResultSet rs = conn.prepareStatement("SELECT creator_id, position_x, position_y FROM island;").executeQuery();
+            Float nearestIslandDistance = location.distance(rs.getInt("position_x"),rs.getInt("position_y"));
+            while (rs.next()) {
+                Float newDistanceLocation = location.distance(rs.getInt("position_x"),rs.getInt("position_y"));
+                if (newDistanceLocation < nearestIslandDistance) {
+                    nearestIslandDistance = newDistanceLocation;
+                    nearestIslandCreatorId = rs.getInt("creator_id");
+                    SpongyIsland.getPlugin().getLogger().debug("CreatorID: " + nearestIslandCreatorId);
+                }
+            }
+            rs = conn.prepareStatement("SELECT uuid FROM player WHERE id='"+nearestIslandCreatorId+"';").executeQuery();
+            UUID islandOwnerUUID = UUID.fromString(rs.getString("uuid"));
+            return getPlayerData(islandOwnerUUID);
+        } catch (SQLException e) {
+            SpongyIsland.getPlugin().getLogger().error(e.toString());
+        }
+
+        return null;
+    }
+
+
     public Vector2i[] getLastIslandsPosition(int num){
         Vector2i[] res = new Vector2i[num];
         try(Connection conn = getDataSource().getConnection()) {

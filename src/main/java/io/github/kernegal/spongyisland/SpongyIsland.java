@@ -127,19 +127,7 @@ public class SpongyIsland {
             economyService = (EconomyService) event.getNewProviderRegistration().getProvider();
         }
     }
-    @Listener
-    public void onGameStartingServerEvent(GameStartingServerEvent event) {
-        createAndLoadWorld("skyworld", WorldArchetypes.THE_VOID);
-    }
 
-    private void createAndLoadWorld(String folderName, WorldArchetype settings) {
-        try {
-            final WorldProperties properties = Sponge.getServer().createWorldProperties(folderName, settings);
-            Sponge.getServer().loadWorld(properties);
-        } catch (IOException ex) {
-            this.logger.error("Failed to create world data for [" + folderName + "]!", ex);
-        }
-    }
     @Listener
     public void onPreInitialization(GamePreInitializationEvent event) {
 
