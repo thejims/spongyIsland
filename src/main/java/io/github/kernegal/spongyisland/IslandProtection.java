@@ -76,7 +76,7 @@ public class IslandProtection {
         }
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
 
-        if (playerData.getIsland() != -1 || (IslandPlayer.ifFriend(player))) {
+        if (playerData.getIsland() != -1 || (playerData.ifFriend(player))) {
 
             for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
                 trans.getOriginal().getLocation().ifPresent(location -> {
@@ -109,7 +109,7 @@ public class IslandProtection {
             return;
         }
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        if (playerData.getIsland() != -1 || (IslandPlayer.ifFriend(player))) {
+        if (playerData.getIsland() != -1 || (playerData.ifFriend(player))) {
 
             for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
                 trans.getOriginal().getLocation().ifPresent(location -> {
@@ -143,7 +143,7 @@ public class IslandProtection {
             return;
         }
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        if (playerData.getIsland() != -1 || (IslandPlayer.ifFriend(player))) {
+        if (playerData.getIsland() != -1 || (playerData.ifFriend(player))) {
 
             Vector3i location =  event.getTargetBlock().getPosition().toInt();
             Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
