@@ -23,10 +23,12 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="true" />
         <module name="spongyisland" />
+        <module name="SpongyIsland" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="spongyisland" target="1.8" />
+      <module name="SpongyIsland" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
