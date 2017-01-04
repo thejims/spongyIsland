@@ -274,7 +274,7 @@ public class SpongyIsland {
         //TODO Add ability to specify a players name to change home to the other players island if they are friends
         CommandSpec newIsSetHomeCommand =  CommandSpec.builder()
                 .description(Text.of("set your island home position"))
-                .executor(new IsSetHome(data,globalConfigNode.getNode("island","radius").getInt(),globalConfigNode.getNode("island","protectionRadius").getInt()))
+                .executor(new IsSetHome(data,globalConfigNode.getNode("island","protectionRadius").getInt()))
                 .build();
 
         //is level
@@ -390,11 +390,10 @@ public class SpongyIsland {
                 .build();
         Sponge.getCommandManager().register(this, confirmationCommand, "isconfirm");
 
-        //Island freind add
-        //add friend
         CommandSpec addFriend =  CommandSpec.builder()
-                .description(Text.of("Removes or add Friend based on there status"))
-                .arguments(GenericArguments.user(Text.of("Friend")))
+                .description(Text.of("Remove or add friend to your island"))
+                .arguments(GenericArguments.string(Text.of("action")))
+                .arguments(GenericArguments.user(Text.of("friend")))
                 .executor(new IsFriend(data))
                 .build();
         this.game.getCommandManager().register(this, addFriend, "isfriend", "isf");

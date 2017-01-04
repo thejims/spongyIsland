@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
+//TODO: Separate into PlayerStore, IslandStore, and ChallengeStore classes
 public class DataHolder {
 
     private Map<UUID, IslandPlayer> players;
@@ -144,34 +145,13 @@ public class DataHolder {
             if (!playerNode.getNode("island").isVirtual())
                 isPlayer.setIsland(playerNode.getNode("island").getValue(TypeToken.of(UUID.class)));
 
-            if (!playerNode.getNode("friends").isVirtual())
-                isPlayer.setFriends(playerNode.getNode("friends").getList(TypeToken.of(UUID.class)));
-
             players.put(uuid, isPlayer);
 
         } catch (ObjectMappingException e) {
             SpongyIsland.getPlugin().getLogger().error(e.toString());
         }
     }
-    private void unloadPlayer(UUID uuid) {
-        if (!players.containsKey(uuid))
-            return;
-        players.remove(uuid);
-    }
-    public void addFriend(UUID player, UUID friend) {
-        players.get(player).addFriend(friend);
-        updateFriends(player);
-    }
-    public void removeFriend(UUID player, UUID friend) {
-        players.get(player).removeFriend(friend);
-        updateFriends(player);
-    }
-    private void updateFriends(UUID player) {
-        ConfigurationNode playerNode = playerStoreNode.getNode(player.toString());
-        playerNode.getNode("friends").setValue(players.get(player).getFriends());
-        savePlayerStore();
-    }
-    private void setIsland(UUID player, UUID island) {
+    private void setPlayerIsland(UUID player, UUID island) {
         players.get(player).setIsland(island);
         playerStoreNode.getNode(player.toString()).getNode("island").setValue(island);
         savePlayerStore();
@@ -241,9 +221,9 @@ public class DataHolder {
         ConfigurationNode playerNode = playerStoreNode.getNode(uuid);
         try {
             playerNode.getNode("island").setValue(TypeToken.of(UUID.class), uuid);
-            islandNode.getNode("name").setValue(name);
             islandNode.getNode("location").setValue(TypeToken.of(Vector3i.class), worldPos);
             islandNode.getNode("position").setValue(TypeToken.of(Vector2i.class), position);
+            islandNode.getNode("name").setValue(name);
             islandNode.getNode("home").setValue(TypeToken.of(Vector3i.class), worldPos);
             islandNode.getNode("friends").setValue(Arrays.asList(uuid));
             if (!islandStoreNode.getNode("last_island_position").isVirtual())
@@ -256,12 +236,74 @@ public class DataHolder {
         savePlayerStore();
     }
 
+    public Vector3i getIslandHome(UUID island) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        try {
+            return islandNode.getNode("home").getValue(TypeToken.of(Vector3i.class));
+        } catch (ObjectMappingException e) {
+            SpongyIsland.getPlugin().getLogger().error(e.toString());
+            return null;
+        }
+    }
     public void setIslandHome(UUID island, Vector3i pos){
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         islandNode.getNode("home").setValue(pos);
         saveIslandStore();
     }
+    public Vector3i getIslandLocation(UUID island) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        try {
+            return islandNode.getNode("location").getValue(TypeToken.of(Vector3i.class));
+        } catch (ObjectMappingException e) {
+            SpongyIsland.getPlugin().getLogger().error(e.toString());
+            return null;
+        }
+    }
+    public String getIslandName(UUID island) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        return islandNode.getNode("name").getString();
+    }
+    public void setIslandName(UUID island, String name){
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        islandNode.getNode("name").setValue(name);
+        saveIslandStore();
+    }
 
+    public boolean addIslandFriend(UUID island, UUID friend) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        try {
+            List<UUID> friends = islandNode.getNode("friends").getList(TypeToken.of(UUID.class), new ArrayList<UUID>());
+            if (!friends.contains(friend)) {
+                friends.add(friend);
+                islandNode.getNode("friends").setValue(friends);
+                saveIslandStore();
+            }
+            return true;
+        } catch (ObjectMappingException e) {
+            SpongyIsland.getPlugin().getLogger().error(e.toString());
+            return false;
+        }
+    }
+    public boolean removeIslandFriend(UUID island, UUID friend) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        try {
+            List<UUID> friends = islandNode.getNode("friends").getList(TypeToken.of(UUID.class), new ArrayList<UUID>());
+            if (friends.contains(friend)) {
+                friends.remove(friend);
+                islandNode.getNode("friends").setValue(friends);
+                saveIslandStore();
+            }
+            return true;
+        } catch (ObjectMappingException e) {
+            SpongyIsland.getPlugin().getLogger().error(e.toString());
+            return false;
+        }
+    }
+
+    public void setIslandLevel(UUID uuid, int level){
+        islandStoreNode.getNode(uuid.toString()).getNode("level").setValue(level);
+        saveIslandStore();
+    }
     public void teleportPlayerToIsland(Player player, UUID island) {
         IslandPlayer playerData = getPlayerData(player.getUniqueId());
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
@@ -323,10 +365,6 @@ public class DataHolder {
         }
     }
 
-    public void updateIslandLevel(UUID uuid, int level){
-        islandStoreNode.getNode(uuid.toString()).getNode("level").setValue(level);
-        saveIslandStore();
-    }
 
     //TODO
     /*public void listTopIslands(int number, CommandSource destination){
@@ -361,7 +399,7 @@ public class DataHolder {
     }*/
 
     /*
-    * Used to unlink an island???
+     * Used to unlink an island???
      */
     public void markIslandAsSpecial(UUID uuid){
         ConfigurationNode islandNode = islandStoreNode.getNode(uuid.toString());

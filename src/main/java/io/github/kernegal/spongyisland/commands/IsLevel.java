@@ -106,7 +106,7 @@ public class IsLevel implements CommandExecutor {
         sum/=pointsPerLevel;
         playerData.setNewLevelTime();
         player.sendMessage(Text.of("Level: ",TextColors.AQUA, sum));
-        data.updateIslandLevel(player.getUniqueId(),sum);
+        data.setIslandLevel(player.getUniqueId(),sum);
         return CommandResult.success();
     }
 

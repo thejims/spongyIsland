@@ -26,8 +26,6 @@
 package io.github.kernegal.spongyisland.utils;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 
@@ -36,29 +34,10 @@ public class IslandPlayer {
     private String name;
     private UUID island;
     private long newIslandTime, newLevelTime;
-    private List<UUID> friends;
 
     public IslandPlayer(UUID uuid, String name) {
         this.uuid = uuid;
         this.name = name;
-    }
-
-    public void addFriend(UUID u) {
-        if (friends == null)
-            friends = new ArrayList<UUID>();
-        if (friends.contains(u))
-            return;
-        friends.add(u);
-    }
-
-    public void removeFriend(UUID u) {
-        if (friends == null || !friends.contains(u))
-            return;
-        friends.remove(u);
-    }
-
-    public boolean isFriend(UUID player) {
-        return friends != null && (player.equals(uuid) || friends.contains(player));
     }
 
     public UUID getUUID() {
@@ -72,9 +51,6 @@ public class IslandPlayer {
     @Nullable public UUID getIsland() {
         return island;
     }
-
-    public void setFriends(List<UUID> isFriends) { this.friends = isFriends; }
-    @Nullable public List<UUID> getFriends() { return friends; }
 
     // Not sure about these next two functions, whether the data is persistent or what have you..
     public void setNewIslandTime() { this.newIslandTime = System.currentTimeMillis(); }
