@@ -45,7 +45,7 @@ public class TopCommand implements CommandExecutor {
     @Override
     @Nonnull
     public CommandResult execute(@Nonnull CommandSource source, @Nonnull CommandContext args) throws CommandException {
-        data.listTopIslands(10,source);
+        //data.listTopIslands(10,source);
         return CommandResult.success();
     }
 }

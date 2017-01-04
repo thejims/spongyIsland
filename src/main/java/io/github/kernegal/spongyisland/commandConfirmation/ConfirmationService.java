@@ -57,7 +57,7 @@ public class ConfirmationService implements CommandExecutor {
         newPetitionString = Text.of("write (or click in the commands) ", acceptCommand, " or ",
                 cancelCommand, " to accept or cancel the request");
 
-        failString = "You don not have any pending requests";
+        failString = "You do not have any pending requests";
     }
 
     public void newPetition(CommandSource source, ConfirmationPetition petition){

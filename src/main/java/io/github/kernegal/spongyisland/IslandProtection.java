@@ -48,6 +48,7 @@ import org.spongepowered.api.world.PortalAgent;
 import org.spongepowered.api.world.World;
 
 import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Created by kernegal on 12/10/2016.
@@ -158,7 +159,7 @@ public class IslandProtection {
     public void onEvent(MoveEntityEvent event, @Getter("getTargetEntity") Player player) {
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
 
-        if (playerData.getIsland()!=-1 && event.getFromTransform().getExtent().getName().equals("world")){
+        if (event.getFromTransform().getExtent().getName().equals("world")){
             Vector2i islandCoordinates=playerData.getIsPosition().mul(islandRadius*2);
             Vector2i min = islandCoordinates.sub(protectionRadius,protectionRadius);
             Vector2i max = islandCoordinates.add(protectionRadius,protectionRadius);

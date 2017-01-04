@@ -38,7 +38,7 @@ public class IsFriend implements CommandExecutor {
             User user = args.<User>getOne("Friend").get();
             UUID target = user.getUniqueId();
             IslandPlayer isPlayer = data.getPlayerData(((Player) source).getUniqueId());
-            if (isPlayer.getUuid() == target) return CommandResult.success();
+            if (isPlayer.getUUID() == target) return CommandResult.success();
            if (isPlayer.isFriend(target)) {
                data.removeFriend(((Player) source).getUniqueId(), target);
                source.sendMessage(Text.of(user.getName() +" Has Been Removed from your friends list"));

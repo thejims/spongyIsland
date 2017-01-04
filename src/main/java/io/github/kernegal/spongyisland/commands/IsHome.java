@@ -55,7 +55,11 @@ public class IsHome implements CommandExecutor {
         }
         Player player = (Player) source;
 
+
         dataHolder.teleportPlayerToHome(player);
+// TODO: if given arguments of another island.. teleport to it instead using:
+//    public void teleportPlayerToIsland(Player player, UUID island)
+// side note, make sure island names are unique maybe..
 
         return CommandResult.success();
     }

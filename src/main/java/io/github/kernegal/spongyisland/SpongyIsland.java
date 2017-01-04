@@ -39,7 +39,9 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.args.GenericArguments;
 import org.spongepowered.api.command.spec.CommandSpec;
 import org.spongepowered.api.config.ConfigDir;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartingServerEvent;
@@ -101,8 +103,9 @@ public class SpongyIsland {
     private CommentedConfigurationNode valuesConfigNode;
     private CommentedConfigurationNode biomeShopConfigNode;
     private CommentedConfigurationNode islandCommandConfigNode;
-    private CommentedConfigurationNode friendsListNode;
-    private ConfigurationLoader<CommentedConfigurationNode> friendsListLoader;
+    private ConfigurationLoader<CommentedConfigurationNode> playerStore;
+    private ConfigurationLoader<CommentedConfigurationNode> islandStore;
+    private ConfigurationLoader<CommentedConfigurationNode> completedStore;
 
     public File getConfigPath() { return this.configDir; }
     public File getSchematicsFolder() { return schematicsFolder; }
@@ -133,50 +136,6 @@ public class SpongyIsland {
 
         plugin=this;
 
-        if (!configDir.exists()) {
-            configDir.mkdir();
-        }
-
-        schematicsFolder = new File(getConfigPath(), "schematics");
-        if(!schematicsFolder.exists()){
-            schematicsFolder.mkdir();
-
-            //URL inputUrl=this.getClass().getResource("defaultSchematics/default.schematic");
-            File defSchem= new File(schematicsFolder, "default.schematic");
-
-
-            InputStream ddlStream = this.getClass().getResourceAsStream("defaultSchematics/default.schematic");
-
-            try (FileOutputStream fos = new FileOutputStream(defSchem)){
-                byte[] buf = new byte[2048];
-                int r;
-                while(-1 != (r = ddlStream.read(buf))) {
-                    fos.write(buf, 0, r);
-                }
-                fos.close();
-            }  catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            File hardSchem= new File(schematicsFolder, "harder.schematic");
-
-
-            InputStream hardddlStream = this.getClass().getResourceAsStream("defaultSchematics/harder.schematic");
-
-            try (FileOutputStream fos = new FileOutputStream(hardSchem)){
-                byte[] buf = new byte[2048];
-                int r;
-                while(-1 != (r = hardddlStream.read(buf))) {
-                    fos.write(buf, 0, r);
-                }
-                fos.close();
-            }  catch (IOException e) {
-                e.printStackTrace();
-            }
-
-
-        }
-
         File globalConfig = new File(configDir, "config.conf");
         ConfigurationLoader<CommentedConfigurationNode> globalConfigManager =
                 HoconConfigurationLoader.builder().setFile(globalConfig).build();
@@ -197,77 +156,70 @@ public class SpongyIsland {
         ConfigurationLoader<CommentedConfigurationNode> islandCommandConfigManager =
                 HoconConfigurationLoader.builder().setFile(islandCommandConfig).build();
 
-        File friendsListFile = new File(configDir, "friendsList.conf");
-        friendsListLoader =
-                HoconConfigurationLoader.builder().setFile(friendsListFile).build();
+        File playerFile = new File(configDir, "store/player.txt");
+        playerStore = HoconConfigurationLoader.builder().setFile(playerFile).build();
+
+        File islandFile = new File(configDir, "store/island.txt");
+        islandStore = HoconConfigurationLoader.builder().setFile(islandFile).build();
+
+        File completedFile = new File(configDir, "store/completed.txt");
+        completedStore = HoconConfigurationLoader.builder().setFile(completedFile).build();
 
         try {
-            if(!globalConfig.exists()){
-                globalConfigNode = HoconConfigurationLoader.builder().setURL(this.getClass().getResource("defaultConfigs/config.conf")).build().load();
-                globalConfigManager.save(globalConfigNode);
+
+            schematicsFolder = new File(getConfigPath(), "schematics");
+            if(!schematicsFolder.exists()){
+                pluginContainer.getAsset("defaultSchematics/default.schematic").get().copyToFile(configDir.toPath().resolve("defaultSchematics/default.schematic"));
+                pluginContainer.getAsset("defaultSchematics/harder.schematic").get().copyToFile(configDir.toPath().resolve("defaultSchematics/harder.schematic"));
             }
-            else {
+
+            if(!globalConfig.exists()){
+                globalConfigNode = HoconConfigurationLoader.builder().setURL(pluginContainer.getAsset("defaultConfigs/config.conf").get().getUrl()).build().load();
+                globalConfigManager.save(globalConfigNode);
+            } else {
                 globalConfigNode = globalConfigManager.load();
             }
 
-            if(!challengesConfig.exists()){
-                InputStream ddlStream = this.getClass().getResourceAsStream("defaultConfigs/challenges.conf");
-
-                try (FileOutputStream fos = new FileOutputStream(challengesConfig)){
-                    byte[] buf = new byte[2048];
-                    int r;
-                    while(-1 != (r = ddlStream.read(buf))) {
-                        fos.write(buf, 0, r);
-                    }
-                    fos.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                challengesConfigNode = challengesConfigManager.load();
-                //challengesConfigNode = HoconConfigurationLoader.builder().setURL(this.getClass().getResource("defaultConfigs/challenges.conf")).build().load();
-                //challengesConfigManager.save(challengesConfigNode);
-            }
-            else{
+            if(!challengesConfig.exists()) {
+                challengesConfigNode = HoconConfigurationLoader.builder().setURL(pluginContainer.getAsset("defaultConfigs/challenges.conf").get().getUrl()).build().load();
+                challengesConfigManager.save(challengesConfigNode);
+            } else {
                 challengesConfigNode = challengesConfigManager.load();
             }
 
             if(!valuesConfig.exists()) {
-                valuesConfigNode = HoconConfigurationLoader.builder().setURL(this.getClass().getResource("defaultConfigs/blockvalues.conf")).build().load();
+                valuesConfigNode = HoconConfigurationLoader.builder().setURL(pluginContainer.getAsset("defaultConfigs/blockvalues.conf").get().getUrl()).build().load();
                 valuesConfigManager.save(valuesConfigNode);
-            }
-            else{
+            } else {
                 valuesConfigNode = valuesConfigManager.load();
-
             }
 
             if(!biomeShopConfig.exists()) {
-                biomeShopConfigNode = HoconConfigurationLoader.builder().setURL(this.getClass().getResource("defaultConfigs/biomeshop.conf")).build().load();
+                biomeShopConfigNode = HoconConfigurationLoader.builder().setURL(pluginContainer.getAsset("defaultConfigs/biomeshop.conf").get().getUrl()).build().load();
                 biomeShopConfigManager.save(biomeShopConfigNode);
-            }
-            else{
+            } else{
                 biomeShopConfigNode = biomeShopConfigManager.load();
-
             }
 
             if(!islandCommandConfig.exists()) {
-                islandCommandConfigNode = HoconConfigurationLoader.builder().setURL(this.getClass().getResource("defaultConfigs/islandcommand.conf")).build().load();
+                islandCommandConfigNode = HoconConfigurationLoader.builder().setURL(pluginContainer.getAsset("defaultConfigs/islandcommand.conf").get().getUrl()).build().load();
                 islandCommandConfigManager.save(islandCommandConfigNode);
-            }
-            else{
+            } else {
                 islandCommandConfigNode = islandCommandConfigManager.load();
-
             }
 
-            if(!friendsListFile.exists()) {
-                friendsListNode = HoconConfigurationLoader.builder().build().load();
-                friendsListLoader.save(friendsListNode);
+            if (!islandFile.exists()) {
+                islandStore.save(HoconConfigurationLoader.builder().build().load());
             }
-            else{
-                friendsListNode = friendsListLoader.load();
 
+            if (!playerFile.exists()) {
+                playerStore.save(HoconConfigurationLoader.builder().build().load());
             }
+
+            if (!completedFile.exists()) {
+                completedStore.save(HoconConfigurationLoader.builder().build().load());
+            }
+
         } catch(IOException e) {
             getLogger().error(e.toString());
         }
@@ -280,7 +232,7 @@ public class SpongyIsland {
 
 
         getLogger().info("Preparing data");
-        data = new DataHolder(challengesConfigNode,globalConfigNode);
+        data = new DataHolder(challengesConfigNode,globalConfigNode,playerStore,islandStore,completedStore);
         //Sponge.getEventManager().registerListeners(this, data);
 
         isManager=new IslandManager(data,globalConfigNode);
@@ -298,10 +250,9 @@ public class SpongyIsland {
     }
 
     @Listener
-    public void playerLogin(ClientConnectionEvent.Join event){
-        data.playerLogin(event.getTargetEntity());
+    public void playerLogin(ClientConnectionEvent.Join event, @Root Player player){
+        data.playerLogin(player);
     }
-
 
     private void prepareCommands(){
 
@@ -320,6 +271,7 @@ public class SpongyIsland {
                 .build();
 
         //is sethome
+        //TODO Add ability to specify a players name to change home to the other players island if they are friends
         CommandSpec newIsSetHomeCommand =  CommandSpec.builder()
                 .description(Text.of("set your island home position"))
                 .executor(new IsSetHome(data,globalConfigNode.getNode("island","radius").getInt(),globalConfigNode.getNode("island","protectionRadius").getInt()))

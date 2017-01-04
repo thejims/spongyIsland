@@ -60,7 +60,6 @@ public class IsCreate implements CommandExecutor {
     public CommandResult execute(@Nonnull CommandSource source, @Nonnull CommandContext args) throws CommandException {
         //TODO check for player having no island
 
-
         if (!(source instanceof Player)) {
             source.sendMessage(Text.of(TextColors.RED, "Player only."));
             return CommandResult.success();

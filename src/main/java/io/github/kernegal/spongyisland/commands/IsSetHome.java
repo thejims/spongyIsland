@@ -65,6 +65,7 @@ public class IsSetHome implements CommandExecutor {
         Player player = (Player) source;
 
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
+
         Vector2i islandCoordinates=playerData.getIsPosition().mul(islandRadius*2);
 
         Location<World> location = player.getLocation();
@@ -79,7 +80,7 @@ public class IsSetHome implements CommandExecutor {
             return CommandResult.success();
         }
 
-        data.updateIslandHome(player.getUniqueId(),location.getPosition().toInt());
+        data.setIslandHome(playerData.getIsland(), location.getPosition().toInt());
         player.sendMessage(Text.of(TextColors.GREEN,"Island home updated!"));
 
         return CommandResult.success();

@@ -78,7 +78,6 @@ public class IslandManager {
         ConfigurationNode schematicsNode = configuration.getNode("schematics");
         ConfigurationNode generalNode = configuration.getNode("general");
 
-
         this.islandRadius = islandNode.getNode("radius").getInt();
         this.islandHeight = islandNode.getNode("island_height").getInt();
 
@@ -89,8 +88,6 @@ public class IslandManager {
 
         for (Map.Entry<Object, ? extends ConfigurationNode> entry : childrenMap.entrySet())
         {
-            //System.out.println(entry.getKey() + "/" + entry.getValue());
-            //for(int i=0; i<childrenList.size(); i++){
             ConfigurationNode schematicNode = entry.getValue();
             File schematicFile = new File(SpongyIsland.getPlugin().getSchematicsFolder(),schematicNode.getNode("filename").getString());
             if(!schematicFile.exists()){
@@ -119,14 +116,13 @@ public class IslandManager {
 
         }
 
-        Vector2i[] lastIslandsPosition = dataHolder.getLastIslandsPosition(2);
+        Vector2i[] lastIslandsPosition = dataHolder.getLastTwoIslandsPosition();
         this.lastIslandCreated = lastIslandsPosition[0];
         this.preLastIslandCreated = lastIslandsPosition[1];
 
     }
 
     public boolean create(String schematic, Player player){
-
 
         Island is = islandsPresets.get(schematic);
         if(is == null){
@@ -136,12 +132,13 @@ public class IslandManager {
         }
 
         IslandPlayer playerData = dataHolder.getPlayerData(player.getUniqueId());
-        if(!playerData.canHaveNewIsland( secondsBetweenIslands)){
+        if(!playerData.canHaveNewIsland(secondsBetweenIslands)){
             player.sendMessage(Text.of(TextColors.RED, "You have to wait until you can create/join another island"));
             return false;
         }
 
         //next position free
+        //TODO: Allow configuration for an initial position to avoid creating an island inside spawn
         Vector2i newIslandPos;
         if(lastIslandCreated==null){
             newIslandPos=new Vector2i(0,0);
@@ -182,8 +179,7 @@ public class IslandManager {
         lastIslandCreated=newIslandPos;
 
         //Tell to save the data
-        dataHolder.newIsland(newIslandPos,position,player.getUniqueId());
-        //dataHolder.uptdateIslandHome(player.getUniqueId(),position);
+        dataHolder.newIsland(newIslandPos, position, player);
 
         Vector3i min2 = position.sub(islandRadius,0,islandRadius);
         Vector3i max2 = position.add(islandRadius,0,islandRadius);

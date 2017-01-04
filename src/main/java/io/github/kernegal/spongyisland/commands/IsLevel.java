@@ -81,12 +81,7 @@ public class IsLevel implements CommandExecutor {
         Player player = (Player) source;
         IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
 
-        if(playerData.getIsland()==-1){
-            player.sendMessage(Text.of(TextColors.DARK_RED,"You need an island"));
-            return CommandResult.success();
-        }
-
-        if(!playerData.canCalculateIslanLevel(waitTime)){
+        if(!playerData.canCalculateIslandLevel(waitTime)){
             player.sendMessage(Text.of(TextColors.DARK_RED,"You need to wait "+waitTime+"seconds between level calculations"));
             return CommandResult.success();
         }

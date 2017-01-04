@@ -25,116 +25,66 @@
 
 package io.github.kernegal.spongyisland.utils;
 
-import com.flowpowered.math.vector.Vector2i;
-import com.flowpowered.math.vector.Vector3i;
-import org.spongepowered.api.entity.living.player.Player;
-
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 
 public class IslandPlayer {
-    private int id;
     private UUID uuid;
     private String name;
-    private Vector2i isPosition;
-    private Vector3i isHome;
-    private int island;
-    private long newIslandTime,newLevelTime;
-    private List<UUID> isFriends;
+    private UUID island;
+    private long newIslandTime, newLevelTime;
+    private List<UUID> friends;
 
-    public IslandPlayer(int id, UUID uuid, String name, Vector2i isPosition, Vector3i isHome, List<UUID> isFriends, int island) {
-        this.id = id;
+    public IslandPlayer(UUID uuid, String name) {
         this.uuid = uuid;
         this.name = name;
-        this.isPosition = isPosition;
-        this.isHome = isHome;
-        this.island = island;
-        this.isFriends = isFriends;
-    }
-
-    public IslandPlayer(int id, UUID uuid, String name) {
-        this.id = id;
-        this.uuid = uuid;
-        this.name = name;
-        this.isPosition = null;
-        this.island = -1;
-        this.isHome = null;
-        this.isFriends = null;
-
     }
 
     public void addFriend(UUID u) {
-        if (isFriends == null)
-            isFriends = new ArrayList<UUID>();
-        isFriends.add(u);
-
+        if (friends == null)
+            friends = new ArrayList<UUID>();
+        if (friends.contains(u))
+            return;
+        friends.add(u);
     }
+
     public void removeFriend(UUID u) {
-        if (isFriends == null) return;
-        isFriends.remove(u);
-
+        if (friends == null || !friends.contains(u))
+            return;
+        friends.remove(u);
     }
 
-    public boolean isFriend(Player player) {
-        return isFriends != null && (player.getUniqueId().equals(uuid) || isFriends.contains(player.getUniqueId()));
-
-    }
     public boolean isFriend(UUID player) {
-        return isFriends != null && (player.equals(uuid) || isFriends.contains(player));
-
+        return friends != null && (player.equals(uuid) || friends.contains(player));
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public UUID getUuid() {
+    public UUID getUUID() {
         return uuid;
     }
-
     public String getName() {
         return name;
     }
 
-    public Vector3i getIsHome() {
-        return isHome;
-    }
-
-    public List<UUID> getFriends() { return isFriends; }
-
-    public int getIsland() {
+    public void setIsland(UUID island) { this.island = island; }
+    @Nullable public UUID getIsland() {
         return island;
     }
 
-    public Vector2i getIsPosition() {
-        return isPosition;
-    }
+    public void setFriends(List<UUID> isFriends) { this.friends = isFriends; }
+    @Nullable public List<UUID> getFriends() { return friends; }
 
-    public void setIsHome(Vector3i isHome) {
-        this.isHome = isHome;
-    }
-
-    public void setIsland(int island,Vector2i isPosition) {
-        this.island = island;
-        this.isPosition = isPosition;
-        this.newIslandTime = System.currentTimeMillis();
-    }
-
-    public void setNewLevelTime(){
-        this.newLevelTime = System.currentTimeMillis();
-    }
-    /*public void setIsPosition(Vector2i isPosition) {
-        this.isPosition = isPosition;
-    }*/
+    // Not sure about these next two functions, whether the data is persistent or what have you..
+    public void setNewIslandTime() { this.newIslandTime = System.currentTimeMillis(); }
+    public void setNewLevelTime(){ this.newLevelTime = System.currentTimeMillis(); }
 
     public boolean canHaveNewIsland(int waitTime){
-
         return newIslandTime==0 || (System.currentTimeMillis()-newIslandTime)/1000>waitTime;
     }
 
-    public boolean canCalculateIslanLevel(int waitTime){
+    public boolean canCalculateIslandLevel(int waitTime){
         return newLevelTime==0 || (System.currentTimeMillis()-newLevelTime)/1000>waitTime;
     }
 }
