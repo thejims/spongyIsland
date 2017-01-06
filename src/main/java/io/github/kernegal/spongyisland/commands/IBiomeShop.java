@@ -83,20 +83,17 @@ public class IBiomeShop implements CommandExecutor {
             return CommandResult.success();
         }
         Player player = (Player) source;
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-
-        if(playerData.getIsland()==-1){
+        IslandPlayer playerData = data.getPlayerData(player.getUniqueId().toString());
+        String island = playerData.getIsland();
+        if(island==null){
             player.sendMessage(Text.of(TextColors.DARK_RED,"You need an island"));
             return CommandResult.success();
         }
-
-        Vector2i islandCoordinates=playerData.getIsPosition().mul(islandRadius*2);
-
-        Vector2i min2 = islandCoordinates.sub(islandRadius,islandRadius);
-        Vector2i max2 = islandCoordinates.add(islandRadius,islandRadius);
-
-        Vector3i min = new Vector3i(min2.getX(),0,min2.getY());
-        Vector3i max = new Vector3i(max2.getX(),255,max2.getY());
+        Vector3i islandCoordinates = data.getIslandLocation(island);
+        Vector3i min = islandCoordinates.sub(islandRadius,0,islandRadius);
+        Vector3i max = islandCoordinates.add(islandRadius,0,islandRadius);
+        min = new Vector3i(min.getX(),0,min.getY());
+        max = new Vector3i(max.getX(),255,max.getY());
 
         Optional<World> world = Sponge.getServer().getWorld("world");
         if(!world.isPresent()){

@@ -58,7 +58,6 @@ public class IsCreate implements CommandExecutor {
     @Override
     @Nonnull
     public CommandResult execute(@Nonnull CommandSource source, @Nonnull CommandContext args) throws CommandException {
-        //TODO check for player having no island
 
         if (!(source instanceof Player)) {
             source.sendMessage(Text.of(TextColors.RED, "Player only."));
@@ -71,8 +70,8 @@ public class IsCreate implements CommandExecutor {
 
         if(schematicOpt.isPresent()) {
             String schema = schematicOpt.get();
-            IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-            if (playerData.getIsland() != -1) {
+            IslandPlayer playerData = data.getPlayerData(player.getUniqueId().toString());
+            if (playerData.getIsland() != null) {
                 player.sendMessage(Text.of(TextColors.RED, "You already have an island. If you continue, your actual island will be lost forever"));
                 SpongyIsland.getPlugin().getService().newPetition(source, new ConfirmationPetition() {
 

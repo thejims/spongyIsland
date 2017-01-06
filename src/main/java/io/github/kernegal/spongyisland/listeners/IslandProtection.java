@@ -23,11 +23,11 @@
  *
  */
 
-package io.github.kernegal.spongyisland;
+package io.github.kernegal.spongyisland.listeners;
 
-import com.flowpowered.math.vector.Vector2i;
-import com.flowpowered.math.vector.Vector3i;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
+import io.github.kernegal.spongyisland.DataHolder;
+import io.github.kernegal.spongyisland.SpongyIsland;
+
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockSnapshot;
 import org.spongepowered.api.data.Transaction;
@@ -39,7 +39,9 @@ import org.spongepowered.api.event.entity.MoveEntityEvent;
 import org.spongepowered.api.event.filter.Getter;
 import org.spongepowered.api.event.filter.IsCancelled;
 import org.spongepowered.api.event.filter.cause.First;
+import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.event.filter.type.Exclude;
+import org.spongepowered.api.event.filter.type.Include;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import org.spongepowered.api.util.Tristate;
@@ -48,7 +50,6 @@ import org.spongepowered.api.world.PortalAgent;
 import org.spongepowered.api.world.World;
 
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Created by kernegal on 12/10/2016.
@@ -56,104 +57,51 @@ import java.util.UUID;
 public class IslandProtection {
 
     private DataHolder data;
-    private int islandRadius, protectionRadius;
 
-    public IslandProtection(DataHolder data, int islandRadius, int protectionRadius) {
-        this.data = data;
-        this.islandRadius = islandRadius;
-        this.protectionRadius = protectionRadius;
-    }
+    public IslandProtection(DataHolder data) { this.data = data; }
 
     @Listener
     @IsCancelled(Tristate.FALSE)
-    public void blockPlaceEvent(ChangeBlockEvent.Place event, @First Player player) {
-        if(player.hasPermission(SpongyIsland.pluginId+".islands.modify_blocks")){
-            return;
-        }
-        if(!event.getTargetWorld().getName().equals("world")){
-            return;
-        }
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        IslandPlayer islandOwner = data.nearestIsland(playerData.getIsPosition());
-        if (islandOwner.isFriend(player.getUniqueId())) {
-            event.setCancelled(true);
-            return;
-        }
-
-        Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
-        Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
-        Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
-        for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
-            trans.getOriginal().getLocation().ifPresent(location -> {
-                if ((location.getX() < min.getX() || location.getX() >= max.getX() ||
-                        location.getZ() < min.getY() || location.getZ() >= max.getY()) &&
-                        islandOwner.isFriend(player.getUniqueId())) {
-                    trans.setValid(false);
-                    //event.setCancelled(true);
-                }
-            });
-        }
-
-
-    }
-
-    @Listener
-    @IsCancelled(Tristate.FALSE)
-    public void blockBreakEvent(ChangeBlockEvent.Break event, @First Player player) {
+    @Include({ChangeBlockEvent.Break.class,ChangeBlockEvent.Place.class})
+    public void blockChangeEvent(ChangeBlockEvent event, @First Player player) {
         if(player.hasPermission(SpongyIsland.pluginId+".islands.modify_blocks"))
             return;
 
         if(!event.getTargetWorld().getName().equals("world"))
             return;
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        IslandPlayer islandOwner = data.nearestIsland(playerData.getIsPosition());
-        if (islandOwner.isFriend(player.getUniqueId())) {
-            event.setCancelled(true);
-            return;
+
+        for (Transaction<BlockSnapshot> transaction: event.getTransactions()) {
+            // Look up the island located at the block transaction location
+            String island = data.findIslandAtCoordinates(transaction.getOriginal().getLocation().get().getPosition().toInt());
+
+            // Block location not found on an island
+            // Player doesn't have permission on the island
+            if (island == null || !data.isIslandFriend(island, player.getUniqueId().toString()))
+                transaction.setValid(false);
         }
-        for(Transaction<BlockSnapshot> trans : event.getTransactions()) {
-            trans.getOriginal().getLocation().ifPresent(location -> {
-                Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
-                Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
-                Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
-                if (location.getX() < min.getX() || location.getX() >= max.getX() ||
-                        location.getZ() < min.getY() || location.getZ() >= max.getY()) {
-                    trans.setValid(false);
-                    //event.setCancelled(true);
-                }
-
-            });
-
-        }
-
     }
 
     @Listener
     @Exclude(InteractBlockEvent.Primary.class)
-    public void onInteract(InteractBlockEvent event, @First Player player) {
-        if(player.hasPermission(SpongyIsland.pluginId+".islands.modify_blocks")){
+    public void onInteract(InteractBlockEvent event, @Root Player player) {
+        if(player.hasPermission(SpongyIsland.pluginId+".islands.modify_blocks"))
             return;
-        }
+
         Optional<World> world = Sponge.getServer().getWorld(event.getTargetBlock().getWorldUniqueId());
-        if(!world.isPresent() || !world.get().getName().equals("world")){
+        if(!world.isPresent() || !world.get().getName().equals("world"))
             return;
-        }
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-        IslandPlayer islandOwner = data.nearestIsland(playerData.getIsPosition());
-        if (islandOwner.isFriend(player.getUniqueId())) {
+
+        // Look up the island located at the block transaction location
+        String island = data.findIslandAtCoordinates(event.getTargetBlock().getPosition().toInt());
+
+        // Block location not found on an island or
+        // Player doesn't have permission on the island
+        if (island == null || !data.isIslandFriend(island, player.getUniqueId().toString()))
             event.setCancelled(true);
-            return;
-        }
-        Vector3i location =  event.getTargetBlock().getPosition().toInt();
-        Vector2i islandCoordinates = playerData.getIsPosition().mul(islandRadius * 2);
-        Vector2i min = islandCoordinates.sub(protectionRadius, protectionRadius);
-        Vector2i max = islandCoordinates.add(protectionRadius, protectionRadius);
-        if (location.getX() < min.getX() || location.getX() >= max.getX() ||
-                location.getZ() < min.getY() || location.getZ() >= max.getY()) {
-            event.setCancelled(true);
-        }
     }
 
+    /*
+     * Easily doable, but is it worth it in the lag it might cause? perhaps Async this..?
     @Listener
     @Exclude({MoveEntityEvent.Teleport.class,MoveEntityEvent.Teleport.Portal.class})
     public void onEvent(MoveEntityEvent event, @Getter("getTargetEntity") Player player) {
@@ -185,6 +133,7 @@ public class IslandProtection {
             }
         }
     }
+    */
 
     @Listener
     public void onPortalTP(MoveEntityEvent.Teleport.Portal event, @Getter("getTargetEntity") Player player) {

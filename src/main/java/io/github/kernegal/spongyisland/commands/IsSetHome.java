@@ -28,6 +28,7 @@ package io.github.kernegal.spongyisland.commands;
 import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 import io.github.kernegal.spongyisland.DataHolder;
+import io.github.kernegal.spongyisland.SpongyIsland;
 import io.github.kernegal.spongyisland.utils.IslandManager;
 import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import org.spongepowered.api.Sponge;
@@ -48,11 +49,11 @@ import java.util.UUID;
  * Created by kernegal on 12/10/2016.
  */
 public class IsSetHome implements CommandExecutor {
-    private DataHolder data;
+    private DataHolder islandData;
     private int protectionRadius;
 
     public IsSetHome(DataHolder data, int protectionRadius) {
-        this.data = data;
+        this.islandData = data;
         this.protectionRadius = protectionRadius;
     }
 
@@ -63,27 +64,22 @@ public class IsSetHome implements CommandExecutor {
             return CommandResult.success();
         }
         Player player = (Player) source;
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-
-        UUID island = playerData.getIsland();
-        if (island == null)
-            return CommandResult.success();
-
-        Vector3i islandLocation = data.getIslandLocation(island);
-        Vector2i islandCoordinates = new Vector2i(islandLocation.getX(), islandLocation.getY());
-        Vector2i min = islandCoordinates.sub(protectionRadius,protectionRadius);
-        Vector2i max = islandCoordinates.add(protectionRadius,protectionRadius);
-        Location<World> newLocation = player.getLocation();
-        if(!newLocation.getExtent().getName().equals("world") ||
-                newLocation.getX()<min.getX() || newLocation.getX()>=max.getX() ||
-                newLocation.getZ()<min.getY() || newLocation.getZ()>=max.getY()){
-            player.sendMessage(Text.of(TextColors.DARK_RED,"You need to be inside of your island"));
+        String islandID = islandData.getPlayersIsland(player.getUniqueId().toString());
+        if (islandID == null) {
+            player.sendMessage(Text.of(TextColors.DARK_RED, "You do not have an island"));
             return CommandResult.success();
         }
 
-        data.setIslandHome(island, newLocation.getPosition().toInt());
-        player.sendMessage(Text.of(TextColors.GREEN,"Island home updated!"));
+        SpongyIsland.getPlugin().getLogger().info("Request for {} to set island home for island {}", player.getName(), islandData.getIslandName(islandID));
 
+        Vector3i playerLocation = player.getLocation().getPosition().toInt();
+        String islandIDAtLocation = islandData.findIslandAtCoordinates(playerLocation);
+        if (islandID.equals(islandIDAtLocation)) {
+            islandData.setIslandHome(islandID, playerLocation);
+            player.sendMessage(Text.of(TextColors.GREEN,"Island home updated!"));
+        } else {
+            player.sendMessage(Text.of(TextColors.DARK_RED, "You need to be inside of your island"));
+        }
         return CommandResult.success();
     }
 }

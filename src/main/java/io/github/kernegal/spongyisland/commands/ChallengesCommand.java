@@ -72,7 +72,7 @@ public class ChallengesCommand implements CommandExecutor {
             level=opLevel.get();
         }
         else{
-            level=data.getLastLevelIssued(player.getUniqueId());
+            level=data.getLastLevelIssued(player.getUniqueId().toString());
         }
         String levelName = challenges.getNode("level_list", level, "friendly_name").getString("");
         if(levelName.isEmpty()){
@@ -97,14 +97,14 @@ public class ChallengesCommand implements CommandExecutor {
 
             Text challengeDescription = Text.of(TextColors.AQUA,entry.getValue().getNode("description").getString());
             Text challengeReward = Text.of("Reward: ",TextColors.GREEN,
-                    data.challengeIsCompleted(player.getUniqueId(),entry.getKey().toString())?
+                    data.challengeIsCompleted(player.getUniqueId().toString(),entry.getKey().toString())?
                             entry.getValue().getNode("repeat_reward_text").getString():entry.getValue().getNode("reward_text").getString()
             );
             String challengeStr= entry.getValue().getNode("friendly_name").getString("NAME ERROR");
             Text.Builder challengeBuilder = Text.builder(challengeStr);
 
-            if(!data.canCompleteChallenge(player.getUniqueId(),entry.getKey().toString())){
-                if(data.challengeIsCompleted(player.getUniqueId(),entry.getKey().toString()))
+            if(!data.canCompleteChallenge(player.getUniqueId().toString(),entry.getKey().toString())){
+                if(data.challengeIsCompleted(player.getUniqueId().toString(),entry.getKey().toString()))
                     challengeBuilder.color(TextColors.DARK_GREEN);
                 else
                     challengeBuilder.color(TextColors.DARK_BLUE);
@@ -164,9 +164,9 @@ public class ChallengesCommand implements CommandExecutor {
             //Text challengeReward = Text.of("Reward: ",TextColors.GREEN,entry.getValue().getNode("reward_text").getString());
             String levelStr= levelNode.getNode("friendly_name").getString("NAME ERROR");
             Text.Builder textBuilder = Text.builder(levelStr);
-            if(data.hasAccessToLevel(player.getUniqueId(),currentLevel)) {
+            if(data.hasAccessToLevel(player.getUniqueId().toString(),currentLevel)) {
                 //Text challengeDescription = Text.of(TextColors.AQUA,entry.getValue().getNode("description").getString());
-                int challengesCompleted = data.getCompletedChallengesInLevel(player.getUniqueId(),currentLevel);
+                int challengesCompleted = data.getCompletedChallengesInLevel(player.getUniqueId().toString(),currentLevel);
                 int requiredChallenges = levelNode.getNode("required_challenges").getInt(0);
                 if(challengesCompleted<requiredChallenges){
                     textBuilder.color(TextColors.BLUE)

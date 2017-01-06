@@ -54,7 +54,7 @@ public class IAUnlinkIsland implements CommandExecutor {
         }
 
         Player player = (Player) source;
-        data.markIslandAsSpecial(player.getUniqueId());
+        data.markIslandAsSpecial(player.getUniqueId().toString());
         return CommandResult.success();
     }
 }

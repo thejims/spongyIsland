@@ -26,31 +26,28 @@
 package io.github.kernegal.spongyisland.utils;
 
 import javax.annotation.Nullable;
-import java.util.UUID;
 
 
 public class IslandPlayer {
-    private UUID uuid;
+    private String uuid;
     private String name;
-    private UUID island;
+    private String island;
     private long newIslandTime, newLevelTime;
 
-    public IslandPlayer(UUID uuid, String name) {
+    public IslandPlayer(String uuid, String name) {
         this.uuid = uuid;
         this.name = name;
     }
 
-    public UUID getUUID() {
+    public String getUUID() {
         return uuid;
     }
     public String getName() {
         return name;
     }
+    @Nullable public String getIsland() { return island; }
 
-    public void setIsland(UUID island) { this.island = island; }
-    @Nullable public UUID getIsland() {
-        return island;
-    }
+    public void setIsland(String island) { this.island = island; }
 
     // Not sure about these next two functions, whether the data is persistent or what have you..
     public void setNewIslandTime() { this.newIslandTime = System.currentTimeMillis(); }

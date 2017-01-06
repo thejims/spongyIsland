@@ -79,21 +79,21 @@ public class IsLevel implements CommandExecutor {
             return CommandResult.success();
         }
         Player player = (Player) source;
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId());
-
+        IslandPlayer playerData = data.getPlayerData(player.getUniqueId().toString());
+        String island = playerData.getIsland();
+        if(island==null){
+            player.sendMessage(Text.of(TextColors.DARK_RED,"You need an island"));
+            return CommandResult.success();
+        }
         if(!playerData.canCalculateIslandLevel(waitTime)){
             player.sendMessage(Text.of(TextColors.DARK_RED,"You need to wait "+waitTime+"seconds between level calculations"));
             return CommandResult.success();
         }
-        Vector2i islandCoordinates=playerData.getIsPosition().mul(islandRadius*2);
-
-        Vector2i min2 = islandCoordinates.sub(protectionRadius,protectionRadius);
-        Vector2i max2 = islandCoordinates.add(protectionRadius,protectionRadius);
-
-        Vector3i min = new Vector3i(min2.getX(),0,min2.getY());
-        Vector3i max = new Vector3i(max2.getX(),255,max2.getY());
-
-
+        Vector3i islandCoordinates = data.getIslandLocation(island);
+        Vector3i min = islandCoordinates.sub(islandRadius,0,islandRadius);
+        Vector3i max = islandCoordinates.add(islandRadius,0,islandRadius);
+        min = new Vector3i(min.getX(),0,min.getY());
+        max = new Vector3i(max.getX(),255,max.getY());
         World world = Sponge.getServer().getWorld("world").get();
         Extent view = world.getExtentView(min, max);
         int sum = view.getBlockWorker(Cause.of(NamedCause.of("plugin", SpongyIsland.getPlugin().getPluginContainer()))).reduce(
@@ -106,7 +106,7 @@ public class IsLevel implements CommandExecutor {
         sum/=pointsPerLevel;
         playerData.setNewLevelTime();
         player.sendMessage(Text.of("Level: ",TextColors.AQUA, sum));
-        data.setIslandLevel(player.getUniqueId(),sum);
+        data.setIslandLevel(player.getUniqueId().toString(),sum);
         return CommandResult.success();
     }
 

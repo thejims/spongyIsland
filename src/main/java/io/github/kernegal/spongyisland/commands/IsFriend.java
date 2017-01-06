@@ -38,8 +38,8 @@ public class IsFriend implements CommandExecutor {
 
         String action = args.<String>getOne("action").get();
         User user = args.<User>getOne("friend").get();
-        UUID player = user.getUniqueId();
-        UUID island = data.getPlayerData(((Player) source).getUniqueId()).getIsland();
+        String player = user.getUniqueId().toString();
+        String island = data.getPlayersIsland(player);
         if (action.equals("add")) {
             if (data.addIslandFriend(island, player)) {
                 source.sendMessage(Text.of(TextColors.GREEN,"Added " + user.getName() + " as an island friend."));

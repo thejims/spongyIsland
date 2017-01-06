@@ -28,6 +28,7 @@ package io.github.kernegal.spongyisland;
 import com.google.inject.Inject;
 import io.github.kernegal.spongyisland.commandConfirmation.ConfirmationService;
 import io.github.kernegal.spongyisland.commands.*;
+import io.github.kernegal.spongyisland.listeners.IslandProtection;
 import io.github.kernegal.spongyisland.utils.IslandManager;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.hocon.HoconConfigurationLoader;
@@ -42,18 +43,13 @@ import org.spongepowered.api.config.ConfigDir;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.filter.cause.Root;
-import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GamePreInitializationEvent;
-import org.spongepowered.api.event.game.state.GameStartingServerEvent;
 import org.spongepowered.api.event.network.ClientConnectionEvent;
 import org.spongepowered.api.event.service.ChangeServiceProviderEvent;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.plugin.PluginContainer;
 import org.spongepowered.api.service.economy.EconomyService;
 import org.spongepowered.api.text.Text;
-import org.spongepowered.api.world.WorldArchetype;
-import org.spongepowered.api.world.WorldArchetypes;
-import org.spongepowered.api.world.storage.WorldProperties;
 
 import java.io.*;
 
@@ -166,11 +162,14 @@ public class SpongyIsland {
         completedStore = HoconConfigurationLoader.builder().setFile(completedFile).build();
 
         try {
+            if (!configDir.exists())
+                configDir.mkdir();
 
-            schematicsFolder = new File(getConfigPath(), "schematics");
+            schematicsFolder = new File(configDir, "schematics");
             if(!schematicsFolder.exists()){
-                pluginContainer.getAsset("defaultSchematics/default.schematic").get().copyToFile(configDir.toPath().resolve("defaultSchematics/default.schematic"));
-                pluginContainer.getAsset("defaultSchematics/harder.schematic").get().copyToFile(configDir.toPath().resolve("defaultSchematics/harder.schematic"));
+                schematicsFolder.mkdir();
+                pluginContainer.getAsset("defaultSchematics/default.schematic").get().copyToFile(schematicsFolder.toPath().resolve("default.schematic"));
+                pluginContainer.getAsset("defaultSchematics/harder.schematic").get().copyToFile(schematicsFolder.toPath().resolve("harder.schematic"));
             }
 
             if(!globalConfig.exists()){
@@ -208,16 +207,20 @@ public class SpongyIsland {
                 islandCommandConfigNode = islandCommandConfigManager.load();
             }
 
+            File storeFolder = new File(configDir, "store");
+            if (!storeFolder.exists())
+                storeFolder.mkdir();
+
             if (!islandFile.exists()) {
-                islandStore.save(HoconConfigurationLoader.builder().build().load());
+                islandStore.save(islandStore.load());
             }
 
             if (!playerFile.exists()) {
-                playerStore.save(HoconConfigurationLoader.builder().build().load());
+                playerStore.save(playerStore.load());
             }
 
             if (!completedFile.exists()) {
-                completedStore.save(HoconConfigurationLoader.builder().build().load());
+                completedStore.save(completedStore.load());
             }
 
         } catch(IOException e) {
@@ -225,21 +228,21 @@ public class SpongyIsland {
         }
 
 
-    }
+    //}
 
-    @Listener
-    public void init(GameInitializationEvent event) {
+    //@Listener
+    //public void init(GameInitializationEvent event) {
 
 
         getLogger().info("Preparing data");
         data = new DataHolder(challengesConfigNode,globalConfigNode,playerStore,islandStore,completedStore);
         //Sponge.getEventManager().registerListeners(this, data);
 
-        isManager=new IslandManager(data,globalConfigNode);
+        isManager = new IslandManager(data,globalConfigNode);
 
         service = new ConfirmationService();
 
-        Sponge.getEventManager().registerListeners(this, new IslandProtection(data,globalConfigNode.getNode("island","radius").getInt(),globalConfigNode.getNode("island","protectionRadius").getInt()) );
+        Sponge.getEventManager().registerListeners(this, new IslandProtection(data));
 
         prepareCommands();
 
@@ -268,6 +271,7 @@ public class SpongyIsland {
         CommandSpec newIsHomeCommand =  CommandSpec.builder()
                 .description(Text.of("teleport to island"))
                 .executor(new IsHome(data))
+                .arguments(GenericArguments.optional(GenericArguments.player((Text.of("friend")))))
                 .build();
 
         //is sethome
@@ -306,6 +310,13 @@ public class SpongyIsland {
                 ))
                 .build();
 
+        //is friend
+        CommandSpec addFriend =  CommandSpec.builder()
+                .description(Text.of("Add or remove a friend to your island"))
+                .arguments(GenericArguments.string(Text.of("action")), GenericArguments.user(Text.of("friend")))
+                .executor(new IsFriend(data))
+                .build();
+
         //is
         CommandSpec newIslandCommand =  CommandSpec.builder()
                 .description(Text.of("list island commands"))
@@ -315,6 +326,7 @@ public class SpongyIsland {
                 .child(newIsLevelCommand,"level", "l")
                 .child(topIslandCommand,"top")
                 .child(isBiomeShopCommand,IBiomeShop.commandName)
+                .child(addFriend, "friend", "f")
                 .executor(new IslandCommand(islandCommandConfigNode))
                 .build();
 
@@ -390,16 +402,6 @@ public class SpongyIsland {
                 .build();
         Sponge.getCommandManager().register(this, confirmationCommand, "isconfirm");
 
-        CommandSpec addFriend =  CommandSpec.builder()
-                .description(Text.of("Remove or add friend to your island"))
-                .arguments(GenericArguments.string(Text.of("action")))
-                .arguments(GenericArguments.user(Text.of("friend")))
-                .executor(new IsFriend(data))
-                .build();
-        this.game.getCommandManager().register(this, addFriend, "isfriend", "isf");
-
     }
-
-
 
 }

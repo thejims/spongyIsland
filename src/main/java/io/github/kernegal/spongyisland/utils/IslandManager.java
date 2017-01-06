@@ -131,7 +131,7 @@ public class IslandManager {
             return false;
         }
 
-        IslandPlayer playerData = dataHolder.getPlayerData(player.getUniqueId());
+        IslandPlayer playerData = dataHolder.getPlayerData(player.getUniqueId().toString());
         if(!playerData.canHaveNewIsland(secondsBetweenIslands)){
             player.sendMessage(Text.of(TextColors.RED, "You have to wait until you can create/join another island"));
             return false;
@@ -198,7 +198,7 @@ public class IslandManager {
             }
         });
 
-        dataHolder.resetChallenges(player.getUniqueId());
+        dataHolder.resetChallenges(player.getUniqueId().toString());
 
         player.getInventory().clear();
         player.offer(Keys.HEALTH, player.get(Keys.MAX_HEALTH).orElse(1.0));

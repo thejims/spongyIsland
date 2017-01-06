@@ -37,13 +37,14 @@ import org.spongepowered.api.text.format.TextColors;
 
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 
 
 public class IsHome implements CommandExecutor {
-    private DataHolder dataHolder;
+    private DataHolder data;
 
-    public IsHome(DataHolder dataHolder) {
-        this.dataHolder = dataHolder;
+    public IsHome(DataHolder data) {
+        this.data = data;
     }
 
     @Override
@@ -53,13 +54,25 @@ public class IsHome implements CommandExecutor {
             source.sendMessage(Text.of(TextColors.RED, "Player only."));
             return CommandResult.success();
         }
+
         Player player = (Player) source;
-
-
-        dataHolder.teleportPlayerToHome(player);
-// TODO: if given arguments of another island.. teleport to it instead using:
-//    public void teleportPlayerToIsland(Player player, UUID island)
-// side note, make sure island names are unique maybe..
+        Optional<Player> friend = args.getOne("friend");
+        if (friend.isPresent()) {
+            String friendsIsland = data.getPlayersIsland(friend.get().getUniqueId().toString());
+            String playerID = player.getUniqueId().toString();
+            if (friendsIsland == null) {
+                source.sendMessage(Text.of(TextColors.DARK_RED,friend.get().getName(), " does not have an island"));
+                return CommandResult.success();
+            }
+            if (data.isIslandFriend(friendsIsland, playerID)) {
+                data.teleportPlayerToIsland(player, friendsIsland);
+                return CommandResult.success();
+            } else {
+                source.sendMessage(Text.of(TextColors.DARK_RED,"Your are not a friend on ",friend.get().getName(), "'s island"));
+            }
+        } else {
+            data.teleportPlayerToHome(player);
+        }
 
         return CommandResult.success();
     }
