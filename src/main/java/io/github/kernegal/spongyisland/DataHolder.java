@@ -69,19 +69,18 @@ public class DataHolder {
     private Map<String, CompletedChallenges> playerChallenges;
     private ConfigurationNode challenges, config;
     private Random rg;
-    private ConfigurationLoader<CommentedConfigurationNode> playerStore, islandStore, challengeStore;
-    private ConfigurationNode playerStoreNode, islandStoreNode, challengeStoreNode;
+    private ConfigurationLoader<CommentedConfigurationNode> islandStore;
+    private ConfigurationLoader<CommentedConfigurationNode> challengeStore;
+    private ConfigurationNode islandStoreNode;
+    private ConfigurationNode challengeStoreNode;
     private Map<String, AABB> islands;
 
     public DataHolder(ConfigurationNode challenges, ConfigurationNode config,
-                      ConfigurationLoader<CommentedConfigurationNode> playerStore,
                       ConfigurationLoader<CommentedConfigurationNode> islandStore,
                       ConfigurationLoader<CommentedConfigurationNode> challengeStore) {
-        this.playerStore = playerStore;
         this.islandStore = islandStore;
         this.challengeStore = challengeStore;
         try {
-            this.playerStoreNode = this.playerStore.load();
             this.islandStoreNode = this.islandStore.load();
             this.challengeStoreNode = this.challengeStore.load();
         } catch (IOException e) {
@@ -113,45 +112,14 @@ public class DataHolder {
             SpongyIsland.getPlugin().getLogger().error(e.toString());
         }
     }
-    private void savePlayerStore() {
-        // TODO: Async this function
-        try {
-            playerStore.save(playerStoreNode);
-        } catch (IOException e) {
-            SpongyIsland.getPlugin().getLogger().error(e.toString());
-        }
-    }
 
     public void playerLogin(Player p) {
         String uuid = p.getUniqueId().toString();
-        loadPlayer(uuid);
         loadPlayerChallenges(uuid);
     }
 
-    private void loadPlayer(String uuid) {
-        // TODO: Async this function
-        if (playersIslands.containsKey(uuid)) // Already loaded
-            return;
-
-        // TODO: Use sponge userstorage instead in case player drops
-        String playerName = Sponge.getServer().getPlayer(UUID.fromString(uuid)).get().getName();
-        ConfigurationNode playerNode = playerStoreNode.getNode(uuid);
-
-        // Just incase it's the first time the player has logged in or they.. changed their name
-        if (playerNode.getNode("name").isVirtual() || !playerNode.getNode("name").getString().equals(playerName)) {
-            playerNode.getNode("name").setValue(playerName);
-            savePlayerStore();
-        }
-
-        playersIslands.put(uuid, getPlayersIsland(uuid));
-
-    }
-    private void setPlayerIsland(String player, String island) {
-        playerStoreNode.getNode(player, "island").setValue(island);
-        savePlayerStore();
-    }
     public String getPlayersIsland(String player) {
-        return playerStoreNode.getNode(player, "island").getString();
+        return playersIslands.get(player);
     }
 
     private void loadPlayerChallenges(String uuid) {
@@ -192,6 +160,9 @@ public class DataHolder {
                         255,
                         islandCoordinates.getZ() + protectionRadius
                 ));
+                String ownerID = entry.getValue().getNode("owner").getString();
+                if (ownerID != null)
+                    playersIslands.put(ownerID, island);
             }
         } catch (ObjectMappingException e) {
             SpongyIsland.getPlugin().getLogger().error(e.toString());
@@ -217,28 +188,28 @@ public class DataHolder {
     }
 
     public void newIsland(Vector2i position, Vector3i worldPos, Player player){
-        String uuid = player.getUniqueId().toString();
-        String name = player.getName();
-        ConfigurationNode islandNode = islandStoreNode.getNode(uuid);
-        ConfigurationNode playerNode = playerStoreNode.getNode(uuid);
+        String playerID = player.getUniqueId().toString();
+        String playerName = player.getName();
+        ConfigurationNode islandNode = islandStoreNode.getNode(playerID);
         try {
-            playerNode.getNode("island").setValue(uuid);
             islandNode.getNode("location").setValue(TypeToken.of(Vector3i.class), worldPos);
             islandNode.getNode("position").setValue(TypeToken.of(Vector2i.class), position);
-            islandNode.getNode("name").setValue(name);
+            islandNode.getNode("name").setValue(playerName);
+            islandNode.getNode("owner").setValue(playerID);
             islandNode.getNode("home").setValue(TypeToken.of(Vector3i.class), worldPos);
             islandNode.getNode("timestamp").setValue(System.currentTimeMillis());
-            islandNode.getNode("friends").setValue(new TypeToken<List<String>>() {}, Arrays.asList(uuid));
+            islandNode.getNode("friends").setValue(new TypeToken<List<String>>() {}, Arrays.asList(playerID));
             if (!islandStoreNode.getNode("last_island_position").isVirtual())
                 islandStoreNode.getNode("pre_last_island_position").setValue(TypeToken.of(Vector2i.class), islandStoreNode.getNode("last_island_position").getValue(TypeToken.of(Vector2i.class)));
             islandStoreNode.getNode("last_island_position").setValue(TypeToken.of(Vector2i.class), position);
         } catch (ObjectMappingException e) {
             SpongyIsland.getPlugin().getLogger().error(e.toString());
         }
+        saveIslandStore();
 
         // Add the new island to our protection list
-        int protectionRadius=config.getNode("island","protectionRadius").getInt();
-        islands.put(uuid, new AABB(
+        int protectionRadius = config.getNode("island", "protectionRadius").getInt();
+        islands.put(playerID, new AABB(
                 worldPos.getX() - protectionRadius,
                 0,
                 worldPos.getZ() - protectionRadius,
@@ -246,8 +217,7 @@ public class DataHolder {
                 255,
                 worldPos.getZ() + protectionRadius
         ));
-        saveIslandStore();
-        savePlayerStore();
+        playersIslands.put(playerID, playerID);
     }
 
     public Vector3i getIslandHome(String island) {
@@ -277,6 +247,15 @@ public class DataHolder {
             return null;
         }
     }
+    public String getIslandOwner(String island) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        return islandNode.getNode("owner").getString();
+    }
+    public void setIslandOwner(String island, String name){
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        islandNode.getNode("owner").setValue(name);
+        saveIslandStore();
+    }
     public String getIslandName(String island) {
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         return islandNode.getNode("name").getString();
@@ -293,7 +272,7 @@ public class DataHolder {
     public boolean addIslandFriend(String island, String friend) {
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         try {
-            List<String> friends = islandNode.getNode("friends").getList(TypeToken.of(String.class), new ArrayList<String>());
+            List<String> friends = islandNode.getNode("friends").getList(TypeToken.of(String.class), new ArrayList<>());
             if (!friends.contains(friend)) {
                 friends.add(friend);
                 islandNode.getNode("friends").setValue(friends);
@@ -370,15 +349,15 @@ public class DataHolder {
     public void teleportPlayerToHome(Player player){
         try {
             String playerID = player.getUniqueId().toString();
-            String islandID = playerStoreNode.getNode(playerID, "island").getString();
-            Vector3i playerHome = islandStoreNode.getNode(islandID, "home").getValue(TypeToken.of(Vector3i.class));
+            String islandID = getPlayersIsland(playerID);
 
             // Player doesn't have an island to call home :(
-            if (playerHome == null) {
+            if (islandID == null) {
                 player.sendMessage(Text.of("You do not have an island"));
                 return;
             }
 
+            Vector3i playerHome = islandStoreNode.getNode(islandID, "home").getValue(TypeToken.of(Vector3i.class));
             Location<World> worldLocation = Sponge.getServer().getWorld("world").get().getLocation(playerHome);
 
             SpongyIsland.getPlugin().getLogger().info("Teleporting player " + player.getName() + " to " + playerHome);
@@ -434,14 +413,9 @@ public class DataHolder {
     public void markIslandAsSpecial(String uuid){
         ConfigurationNode islandNode = islandStoreNode.getNode(uuid);
         islandNode.getNode("special").setValue(true);
-        try {
-            List<String> players = islandNode.getNode("players").getList(TypeToken.of(String.class));
-            players.forEach(player -> { playerStoreNode.getNode(player).removeChild("island"); });
-        } catch (ObjectMappingException e) {
-            SpongyIsland.getPlugin().getLogger().error(e.toString());
-        }
-        islandNode.removeChild("players");
-        savePlayerStore();
+        String owner = islandNode.getNode("owner").getString();
+        playersIslands.remove(owner);
+         islandNode.removeChild("players");
         saveIslandStore();
     }
 

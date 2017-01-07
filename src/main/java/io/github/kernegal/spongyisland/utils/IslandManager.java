@@ -131,11 +131,11 @@ public class IslandManager {
             return false;
         }
         String islandID = dataHolder.getPlayersIsland(player.getUniqueId().toString());
-        int islandTimestamp = dataHolder.getIslandTimestamp(islandID);
-
-        if ((System.currentTimeMillis() - islandTimestamp) / 1000 < secondsBetweenIslands) {
-            player.sendMessage(Text.of(TextColors.RED, "You have to wait until you can create/join another island"));
-            return false;
+        if (islandID != null) {
+            if ((System.currentTimeMillis() - dataHolder.getIslandTimestamp(islandID)) / 1000 < secondsBetweenIslands) {
+                player.sendMessage(Text.of(TextColors.RED, "You have to wait until you can create/join another island"));
+                return false;
+            }
         }
 
         //next position free

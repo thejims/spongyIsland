@@ -66,7 +66,6 @@ public class IsCreate implements CommandExecutor {
 
         Optional<String> schematicOpt = args.getOne("schematic");
 
-
         if(schematicOpt.isPresent()) {
             String schema = schematicOpt.get();
             if (data.getPlayersIsland(player.getUniqueId().toString()) != null) {

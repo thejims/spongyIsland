@@ -99,9 +99,6 @@ public class SpongyIsland {
     private CommentedConfigurationNode valuesConfigNode;
     private CommentedConfigurationNode biomeShopConfigNode;
     private CommentedConfigurationNode islandCommandConfigNode;
-    private ConfigurationLoader<CommentedConfigurationNode> playerStore;
-    private ConfigurationLoader<CommentedConfigurationNode> islandStore;
-    private ConfigurationLoader<CommentedConfigurationNode> completedStore;
 
     public File getConfigPath() { return this.configDir; }
     public File getSchematicsFolder() { return schematicsFolder; }
@@ -152,14 +149,11 @@ public class SpongyIsland {
         ConfigurationLoader<CommentedConfigurationNode> islandCommandConfigManager =
                 HoconConfigurationLoader.builder().setFile(islandCommandConfig).build();
 
-        File playerFile = new File(configDir, "store/player.txt");
-        playerStore = HoconConfigurationLoader.builder().setFile(playerFile).build();
-
         File islandFile = new File(configDir, "store/island.txt");
-        islandStore = HoconConfigurationLoader.builder().setFile(islandFile).build();
+        ConfigurationLoader<CommentedConfigurationNode> islandStore = HoconConfigurationLoader.builder().setFile(islandFile).build();
 
         File completedFile = new File(configDir, "store/completed.txt");
-        completedStore = HoconConfigurationLoader.builder().setFile(completedFile).build();
+        ConfigurationLoader<CommentedConfigurationNode> completedStore = HoconConfigurationLoader.builder().setFile(completedFile).build();
 
         try {
             if (!configDir.exists())
@@ -215,10 +209,6 @@ public class SpongyIsland {
                 islandStore.save(islandStore.load());
             }
 
-            if (!playerFile.exists()) {
-                playerStore.save(playerStore.load());
-            }
-
             if (!completedFile.exists()) {
                 completedStore.save(completedStore.load());
             }
@@ -235,10 +225,9 @@ public class SpongyIsland {
 
 
         getLogger().info("Preparing data");
-        data = new DataHolder(challengesConfigNode,globalConfigNode,playerStore,islandStore,completedStore);
-        //Sponge.getEventManager().registerListeners(this, data);
+        data = new DataHolder(challengesConfigNode, globalConfigNode, islandStore, completedStore);
 
-        isManager = new IslandManager(data,globalConfigNode);
+        isManager = new IslandManager(data, globalConfigNode);
 
         service = new ConfirmationService();
 
