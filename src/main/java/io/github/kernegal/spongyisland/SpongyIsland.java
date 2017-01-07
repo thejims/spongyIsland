@@ -299,7 +299,7 @@ public class SpongyIsland {
         //is friend
         CommandSpec addFriend =  CommandSpec.builder()
                 .description(Text.of("Add or remove a friend to your island"))
-                .arguments(GenericArguments.string(Text.of("action")), GenericArguments.user(Text.of("friend")))
+                .arguments(GenericArguments.string(Text.of("action")), GenericArguments.player(Text.of("friend")))
                 .executor(new IsFriend(data))
                 .build();
 

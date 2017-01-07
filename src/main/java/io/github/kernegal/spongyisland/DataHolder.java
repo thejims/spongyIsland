@@ -197,7 +197,7 @@ public class DataHolder {
             islandNode.getNode("name").setValue(playerName);
             islandNode.getNode("owner").setValue(playerID);
             islandNode.getNode("home").setValue(TypeToken.of(Vector3i.class), worldPos);
-            islandNode.getNode("timestamp").setValue(System.currentTimeMillis());
+            //islandNode.getNode("timestamp").setValue(System.currentTimeMillis());
             islandNode.getNode("friends").setValue(new TypeToken<List<String>>() {}, Arrays.asList(playerID));
             if (!islandStoreNode.getNode("last_island_position").isVirtual())
                 islandStoreNode.getNode("pre_last_island_position").setValue(TypeToken.of(Vector2i.class), islandStoreNode.getNode("last_island_position").getValue(TypeToken.of(Vector2i.class)));
@@ -230,6 +230,8 @@ public class DataHolder {
         }
     }
     public void setIslandHome(String island, Vector3i pos){
+        if (island == null)
+            return;
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         try {
             islandNode.getNode("home").setValue(TypeToken.of(Vector3i.class), pos);
@@ -252,6 +254,7 @@ public class DataHolder {
         return islandNode.getNode("owner").getString();
     }
     public void setIslandOwner(String island, String name){
+        if (island ==null || name == null) return;
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         islandNode.getNode("owner").setValue(name);
         saveIslandStore();
@@ -261,6 +264,7 @@ public class DataHolder {
         return islandNode.getNode("name").getString();
     }
     public void setIslandName(String island, String name){
+        if (island == null || name == null) return;
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         islandNode.getNode("name").setValue(name);
         saveIslandStore();
@@ -270,6 +274,8 @@ public class DataHolder {
         return islandNode.getNode("timestamp").getInt();
     }
     public boolean addIslandFriend(String island, String friend) {
+        if (island == null || friend == null)
+            return false;
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         try {
             List<String> friends = islandNode.getNode("friends").getList(TypeToken.of(String.class), new ArrayList<>());
@@ -285,6 +291,8 @@ public class DataHolder {
         }
     }
     public boolean removeIslandFriend(String island, String friend) {
+        if (island == null || friend == null)
+            return false;
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         try {
             List<String> friends = islandNode.getNode("friends").getList(TypeToken.of(String.class), new ArrayList<String>());
@@ -309,8 +317,9 @@ public class DataHolder {
             return false;
         }
     }
-    public void setIslandLevel(String uuid, int level){
-        islandStoreNode.getNode(uuid, "level").setValue(level);
+    public void setIslandLevel(String island, int level){
+        if (island == null) return;
+        islandStoreNode.getNode(island, "level").setValue(level);
         saveIslandStore();
     }
     public void teleportPlayerToIsland(Player player, String island) {
@@ -410,8 +419,9 @@ public class DataHolder {
     /*
      * Used to unlink an island???
      */
-    public void markIslandAsSpecial(String uuid){
-        ConfigurationNode islandNode = islandStoreNode.getNode(uuid);
+    public void markIslandAsSpecial(String island){
+        if (island == null) return;
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
         islandNode.getNode("special").setValue(true);
         String owner = islandNode.getNode("owner").getString();
         playersIslands.remove(owner);

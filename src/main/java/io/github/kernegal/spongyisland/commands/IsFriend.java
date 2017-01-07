@@ -34,22 +34,24 @@ public class IsFriend implements CommandExecutor {
             source.sendMessage(Text.of(TextColors.RED, "Invalid arguments"));
             return CommandResult.success();
         }
-
+        Player player = (Player)source;
         String action = args.<String>getOne("action").get();
-        User user = args.<User>getOne("friend").get();
-        String player = user.getUniqueId().toString();
-        String island = data.getPlayersIsland(player);
-        if (action.equals("add")) {
-            if (data.addIslandFriend(island, player)) {
-                source.sendMessage(Text.of(TextColors.GREEN,"Added " + user.getName() + " as an island friend."));
+        Player friend = args.<Player>getOne("friend").get();
+        String friendID = friend.getUniqueId().toString();
+        String islandID = data.getPlayersIsland(player.getUniqueId().toString());
+        if (islandID == null) {
+            source.sendMessage(Text.of(TextColors.DARK_RED,"You do not have an island to add any friends to!"));
+        } else if (action.equals("add")) {
+            if (data.addIslandFriend(islandID, friendID)) {
+                source.sendMessage(Text.of(TextColors.GREEN,"Added " + friend.getName() + " as an island friend."));
             } else {
-                source.sendMessage(Text.of(TextColors.DARK_RED,"Unable to add " + user.getName() + " as an island friend."));
+                source.sendMessage(Text.of(TextColors.DARK_RED,"Unable to add " + friend.getName() + " as an island friend."));
             }
         } else if(action.startsWith("rem")) {
-            if (data.removeIslandFriend(island, player)) {
-                source.sendMessage(Text.of(TextColors.GREEN,"Removed " + user.getName() + " as an island friend."));
+            if (data.removeIslandFriend(islandID, friendID)) {
+                source.sendMessage(Text.of(TextColors.GREEN,"Removed " + friend.getName() + " as an island friend."));
             } else {
-                source.sendMessage(Text.of(TextColors.DARK_RED,"Unable to remove " + user.getName() + " as an island friend."));
+                source.sendMessage(Text.of(TextColors.DARK_RED,"Unable to remove " + friend.getName() + " as an island friend."));
             }
         }
         return CommandResult.success();
