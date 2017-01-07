@@ -25,7 +25,6 @@
 
 package io.github.kernegal.spongyisland;
 
-import com.typesafe.config.Config;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
 import org.spongepowered.api.block.BlockType;
@@ -54,7 +53,6 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 import com.google.common.reflect.TypeToken;
 import io.github.kernegal.spongyisland.utils.CompletedChallenges;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import ninja.leaping.configurate.ConfigurationNode;
 import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.gson.GsonConfigurationLoader;
@@ -67,7 +65,7 @@ import java.util.*;
 //TODO: Separate into PlayerStore, IslandStore, and ChallengeStore classes
 public class DataHolder {
 
-    private Map<String, IslandPlayer> players;
+    private Map<String, String> playersIslands;
     private Map<String, CompletedChallenges> playerChallenges;
     private ConfigurationNode challenges, config;
     private Random rg;
@@ -92,7 +90,7 @@ public class DataHolder {
 
         this.challenges = challenges;
         this.config = config;
-        players = new HashMap<>();
+        playersIslands = new HashMap<>();
         playerChallenges = new HashMap<>();
         islands = new HashMap<>();
         rg= new Random();
@@ -132,37 +130,28 @@ public class DataHolder {
 
     private void loadPlayer(String uuid) {
         // TODO: Async this function
-        if (players.containsKey(uuid)) // Already loaded
+        if (playersIslands.containsKey(uuid)) // Already loaded
             return;
 
         // TODO: Use sponge userstorage instead in case player drops
         String playerName = Sponge.getServer().getPlayer(UUID.fromString(uuid)).get().getName();
         ConfigurationNode playerNode = playerStoreNode.getNode(uuid);
-        IslandPlayer isPlayer = new IslandPlayer(uuid, playerName);
+
         // Just incase it's the first time the player has logged in or they.. changed their name
         if (playerNode.getNode("name").isVirtual() || !playerNode.getNode("name").getString().equals(playerName)) {
             playerNode.getNode("name").setValue(playerName);
             savePlayerStore();
         }
 
-        if (!playerNode.getNode("island").isVirtual())
-            isPlayer.setIsland(playerNode.getNode("island").getString());
-
-        players.put(uuid, isPlayer);
+        playersIslands.put(uuid, getPlayersIsland(uuid));
 
     }
     private void setPlayerIsland(String player, String island) {
-        players.get(player).setIsland(island);
         playerStoreNode.getNode(player, "island").setValue(island);
         savePlayerStore();
     }
     public String getPlayersIsland(String player) {
         return playerStoreNode.getNode(player, "island").getString();
-    }
-    public final IslandPlayer getPlayerData(String uuid){
-        if (!players.containsKey(uuid))
-            loadPlayer(uuid);
-        return players.get(uuid);
     }
 
     private void loadPlayerChallenges(String uuid) {
@@ -238,6 +227,7 @@ public class DataHolder {
             islandNode.getNode("position").setValue(TypeToken.of(Vector2i.class), position);
             islandNode.getNode("name").setValue(name);
             islandNode.getNode("home").setValue(TypeToken.of(Vector3i.class), worldPos);
+            islandNode.getNode("timestamp").setValue(System.currentTimeMillis());
             islandNode.getNode("friends").setValue(new TypeToken<List<String>>() {}, Arrays.asList(uuid));
             if (!islandStoreNode.getNode("last_island_position").isVirtual())
                 islandStoreNode.getNode("pre_last_island_position").setValue(TypeToken.of(Vector2i.class), islandStoreNode.getNode("last_island_position").getValue(TypeToken.of(Vector2i.class)));
@@ -296,7 +286,10 @@ public class DataHolder {
         islandNode.getNode("name").setValue(name);
         saveIslandStore();
     }
-
+    public int getIslandTimestamp(String island) {
+        ConfigurationNode islandNode = islandStoreNode.getNode(island);
+        return islandNode.getNode("timestamp").getInt();
+    }
     public boolean addIslandFriend(String island, String friend) {
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
         try {
@@ -342,7 +335,7 @@ public class DataHolder {
         saveIslandStore();
     }
     public void teleportPlayerToIsland(Player player, String island) {
-        IslandPlayer playerData = getPlayerData(player.getUniqueId().toString());
+        String playerID = player.getUniqueId().toString();
         ConfigurationNode islandNode = islandStoreNode.getNode(island);
 
         try {
@@ -353,7 +346,7 @@ public class DataHolder {
             }
 
             // The player is not a friend on the island
-            if (!islandNode.getNode("friends").getList(TypeToken.of(String.class)).contains(playerData.getUUID())) {
+            if (!islandNode.getNode("friends").getList(TypeToken.of(String.class)).contains(playerID)) {
                 player.sendMessage(Text.of("You are not a friend on the requested island"));
                 return;
             }
@@ -421,10 +414,10 @@ public class DataHolder {
                     String name = rs.getString("island_name");
                     if(name==name){
 
-                        destination.sendMessage(Text.of("Island of "+rs.getString("player_name")+": ",TextColors.AQUA,rs.getInt("level"),TextColors.NONE," ["+rs.getInt("num_players")+" players]"));
+                        destination.sendMessage(Text.of("Island of "+rs.getString("player_name")+": ",TextColors.AQUA,rs.getInt("level"),TextColors.NONE," ["+rs.getInt("num_players")+" playersIslands]"));
                     }
                     else{
-                        destination.sendMessage(Text.of(name+": "+rs.getInt("level")+"["+rs.getInt("num_players")+" players]"));
+                        destination.sendMessage(Text.of(name+": "+rs.getInt("level")+"["+rs.getInt("num_players")+" playersIslands]"));
                     }
                 }
             } finally {
@@ -591,15 +584,14 @@ public class DataHolder {
 
         }
         else if( type.equals("level") ){
-            ConfigurationNode islandNode = islandStoreNode.getNode(players.get(player.getUniqueId().toString()).getIsland());
+            ConfigurationNode islandNode = islandStoreNode.getNode(getPlayersIsland(player.getUniqueId().toString()));
             if(islandNode.getNode("level").getInt(0) < challengeNode.getNode("required_items").getInt(0)){
                 player.sendMessage(Text.of(TextColors.DARK_RED,"You don't have the required level"));
                 return;
             }
         }
         else if( type.equals("island") ){
-            IslandPlayer playerData = players.get(player.getUniqueId().toString());
-            ConfigurationNode islandNode = islandStoreNode.getNode(players.get(player.getUniqueId().toString()).getIsland());
+            ConfigurationNode islandNode = islandStoreNode.getNode(getPlayersIsland(player.getUniqueId().toString()));
 
             int islandRadius = config.getNode("island","radius").getInt(), protectionRadius=config.getNode("island","protectionRadius").getInt();
             Vector2i islandCoordinates=null;

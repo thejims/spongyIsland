@@ -30,7 +30,6 @@ import com.flowpowered.math.vector.Vector3i;
 import io.github.kernegal.spongyisland.DataHolder;
 import io.github.kernegal.spongyisland.SpongyIsland;
 import io.github.kernegal.spongyisland.utils.IslandManager;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;

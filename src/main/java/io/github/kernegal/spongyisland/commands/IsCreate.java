@@ -29,7 +29,6 @@ import io.github.kernegal.spongyisland.DataHolder;
 import io.github.kernegal.spongyisland.SpongyIsland;
 import io.github.kernegal.spongyisland.commandConfirmation.ConfirmationPetition;
 import io.github.kernegal.spongyisland.utils.IslandManager;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -65,13 +64,12 @@ public class IsCreate implements CommandExecutor {
         }
         Player player = (Player) source;
 
-        Optional<String> schematicOpt = args.<String>getOne("schematic");
+        Optional<String> schematicOpt = args.getOne("schematic");
 
 
         if(schematicOpt.isPresent()) {
             String schema = schematicOpt.get();
-            IslandPlayer playerData = data.getPlayerData(player.getUniqueId().toString());
-            if (playerData.getIsland() != null) {
+            if (data.getPlayersIsland(player.getUniqueId().toString()) != null) {
                 player.sendMessage(Text.of(TextColors.RED, "You already have an island. If you continue, your actual island will be lost forever"));
                 SpongyIsland.getPlugin().getService().newPetition(source, new ConfirmationPetition() {
 

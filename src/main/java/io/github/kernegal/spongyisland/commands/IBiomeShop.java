@@ -25,12 +25,10 @@
 
 package io.github.kernegal.spongyisland.commands;
 
-import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 import io.github.kernegal.spongyisland.DataHolder;
 import io.github.kernegal.spongyisland.SpongyIsland;
 import io.github.kernegal.spongyisland.utils.IslandManager;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
@@ -48,11 +46,9 @@ import org.spongepowered.api.text.BookView;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.action.TextActions;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.text.format.TextFormat;
 import org.spongepowered.api.text.format.TextStyles;
 import org.spongepowered.api.world.World;
 import org.spongepowered.api.world.biome.BiomeType;
-import org.spongepowered.api.world.biome.BiomeTypes;
 import org.spongepowered.api.world.extent.Extent;
 import org.spongepowered.api.world.extent.worker.procedure.BiomeVolumeFiller;
 
@@ -83,8 +79,7 @@ public class IBiomeShop implements CommandExecutor {
             return CommandResult.success();
         }
         Player player = (Player) source;
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId().toString());
-        String island = playerData.getIsland();
+        String island = data.getPlayersIsland(player.getUniqueId().toString());
         if(island==null){
             player.sendMessage(Text.of(TextColors.DARK_RED,"You need an island"));
             return CommandResult.success();
@@ -194,7 +189,6 @@ public class IBiomeShop implements CommandExecutor {
 
         }
         bookView.addPage(page);
-
 
         return bookView.build();
 

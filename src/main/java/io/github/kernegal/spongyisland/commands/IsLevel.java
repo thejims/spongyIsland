@@ -29,7 +29,6 @@ import com.flowpowered.math.vector.Vector2i;
 import com.flowpowered.math.vector.Vector3i;
 import io.github.kernegal.spongyisland.DataHolder;
 import io.github.kernegal.spongyisland.SpongyIsland;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import ninja.leaping.configurate.ConfigurationNode;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.block.BlockState;
@@ -79,16 +78,12 @@ public class IsLevel implements CommandExecutor {
             return CommandResult.success();
         }
         Player player = (Player) source;
-        IslandPlayer playerData = data.getPlayerData(player.getUniqueId().toString());
-        String island = playerData.getIsland();
+        String island = data.getPlayersIsland(player.getUniqueId().toString());
         if(island==null){
             player.sendMessage(Text.of(TextColors.DARK_RED,"You need an island"));
             return CommandResult.success();
         }
-        if(!playerData.canCalculateIslandLevel(waitTime)){
-            player.sendMessage(Text.of(TextColors.DARK_RED,"You need to wait "+waitTime+"seconds between level calculations"));
-            return CommandResult.success();
-        }
+
         Vector3i islandCoordinates = data.getIslandLocation(island);
         Vector3i min = islandCoordinates.sub(islandRadius,0,islandRadius);
         Vector3i max = islandCoordinates.add(islandRadius,0,islandRadius);
@@ -104,7 +99,6 @@ public class IsLevel implements CommandExecutor {
                 (a, b) -> a + b,
                 0);
         sum/=pointsPerLevel;
-        playerData.setNewLevelTime();
         player.sendMessage(Text.of("Level: ",TextColors.AQUA, sum));
         data.setIslandLevel(player.getUniqueId().toString(),sum);
         return CommandResult.success();

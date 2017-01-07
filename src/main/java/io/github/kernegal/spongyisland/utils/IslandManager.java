@@ -130,9 +130,10 @@ public class IslandManager {
             islandsPresets.forEach((k,v) -> player.sendMessage(Text.of(TextColors.RED, k)));
             return false;
         }
+        String islandID = dataHolder.getPlayersIsland(player.getUniqueId().toString());
+        int islandTimestamp = dataHolder.getIslandTimestamp(islandID);
 
-        IslandPlayer playerData = dataHolder.getPlayerData(player.getUniqueId().toString());
-        if(!playerData.canHaveNewIsland(secondsBetweenIslands)){
+        if ((System.currentTimeMillis() - islandTimestamp) / 1000 < secondsBetweenIslands) {
             player.sendMessage(Text.of(TextColors.RED, "You have to wait until you can create/join another island"));
             return false;
         }

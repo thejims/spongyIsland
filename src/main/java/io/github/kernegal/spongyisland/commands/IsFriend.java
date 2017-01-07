@@ -1,7 +1,6 @@
 package io.github.kernegal.spongyisland.commands;
 
 import io.github.kernegal.spongyisland.DataHolder;
-import io.github.kernegal.spongyisland.utils.IslandPlayer;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;

@@ -248,8 +248,6 @@ public class SpongyIsland {
 
         getLogger().info("Initialization complete");
 
-
-
     }
 
     @Listener
@@ -275,7 +273,6 @@ public class SpongyIsland {
                 .build();
 
         //is sethome
-        //TODO Add ability to specify a players name to change home to the other players island if they are friends
         CommandSpec newIsSetHomeCommand =  CommandSpec.builder()
                 .description(Text.of("set your island home position"))
                 .executor(new IsSetHome(data,globalConfigNode.getNode("island","protectionRadius").getInt()))
@@ -353,7 +350,6 @@ public class SpongyIsland {
                 .build();
 
         Sponge.getCommandManager().register(this, challengesCommand, ChallengesCommand.commandName, ""+ChallengesCommand.commandName.charAt(0) );
-        //Sponge.getCommandManager().register(this, completeChallengeCommand, "completeChallenge", "cc");
 
         //Admin commands
         CommandSpec newSchematicCommand = CommandSpec.builder()
